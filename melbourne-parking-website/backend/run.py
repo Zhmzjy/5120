@@ -13,5 +13,6 @@ from website import create_website
 
 if __name__ == '__main__':
     app = create_website()
-    print("Melbourne Parking Website backend starting on http://localhost:5002")
-    app.run(debug=True, host='0.0.0.0', port=5002)
+    port = int(os.environ.get('PORT', 5002))
+    print(f"Melbourne Parking Website backend starting on port {port}")
+    app.run(debug=False, host='0.0.0.0', port=port)

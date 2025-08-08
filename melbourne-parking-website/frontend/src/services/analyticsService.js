@@ -5,7 +5,8 @@
 
 import axios from 'axios'
 
-const BASE_URL = 'http://localhost:5002/api'
+// Use relative path for production deployment, fallback to localhost for development
+const API_BASE_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5002/api'
 
 class AnalyticsService {
 
@@ -15,7 +16,7 @@ class AnalyticsService {
    */
   async getPopulationData() {
     try {
-      const response = await axios.get(`${BASE_URL}/analytics/population`)
+      const response = await axios.get(`${API_BASE_URL}/analytics/population`)
       return response.data
     } catch (error) {
       console.error('Error fetching population data:', error)
@@ -30,7 +31,7 @@ class AnalyticsService {
    */
   async getHistoricalData(period = '1m') {
     try {
-      const response = await axios.get(`${BASE_URL}/analytics/historical`, {
+      const response = await axios.get(`${API_BASE_URL}/analytics/historical`, {
         params: { period }
       })
       return response.data
@@ -46,7 +47,7 @@ class AnalyticsService {
    */
   async getPopulationParkingCorrelation() {
     try {
-      const response = await axios.get(`${BASE_URL}/analytics/correlation`)
+      const response = await axios.get(`${API_BASE_URL}/analytics/correlation`)
       return response.data
     } catch (error) {
       console.error('Error fetching correlation data:', error)
