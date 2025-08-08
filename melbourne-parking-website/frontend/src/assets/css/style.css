@@ -1,0 +1,63 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+}
+
+.parking-website {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  min-height: 600px; /* Ensure minimum height for map */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+
+  .search-panel {
+    width: 100%;
+  }
+
+  .stats-panel {
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    min-width: 150px;
+  }
+
+  .streets-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Critical Leaflet Map Styles */
+.map-container {
+  height: 500px !important;
+  width: 100% !important;
+  min-height: 500px !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Fix any potential z-index conflicts */
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+}

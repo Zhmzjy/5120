@@ -1,0 +1,25 @@
+services:
+  # Backend API 服务
+  - type: web
+    name: melbourne-parking-api
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_ENV
+        value: production
+
+  # PostgreSQL 数据库
+  - type: pserv
+    name: melbourne-parking-db
+    env: postgresql
+    plan: free
+
+databases:
+  - name: melbourne_parking
+    databaseName: melbourne_parking
+    user: melbourne_user
