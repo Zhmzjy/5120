@@ -1,2 +1,2 @@
-web: cd melbourne-parking-website/backend && python run.py
+web: cd melbourne-parking-website/backend && python3 run.py
 
