@@ -8,7 +8,6 @@
         </div>
         <div class="nav-menu">
           <a href="#features" class="nav-link">Find Parking</a>
-          <a href="#about" class="nav-link">About</a>
           <a href="#contact" class="nav-link">Contact</a>
         </div>
       </div>
@@ -33,52 +32,66 @@
     <!-- Features Preview -->
     <section class="features-section" id="features">
       <div class="container">
-        <h2 class="section-title">Smart Parking Solutions</h2>
+        <h2 class="section-title">
+          Smart Parking Solutions
+          <div class="title-underline"></div>
+        </h2>
         <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">📍</div>
+          <div class="feature-card" @mouseenter="animateFeature" @mouseleave="resetFeature">
+            <div class="feature-icon-wrapper">
+              <div class="feature-icon-bg"></div>
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+              </div>
+            </div>
             <h3>Real-time Status</h3>
-            <p>Live updates on parking availability across Melbourne CBD</p>
+            <p>Live updates on parking availability across Melbourne CBD with instant notifications</p>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">🔥</div>
+          <div class="feature-card" @mouseenter="animateFeature" @mouseleave="resetFeature">
+            <div class="feature-icon-wrapper">
+              <div class="feature-icon-bg"></div>
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              </div>
+            </div>
             <h3>Heat Map View</h3>
-            <p>Visualize parking density and find the best areas to park</p>
+            <p>Visualize parking density and discover optimal areas to park with color-coded insights</p>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">🔍</div>
+          <div class="feature-card" @mouseenter="animateFeature" @mouseleave="resetFeature">
+            <div class="feature-icon-wrapper">
+              <div class="feature-icon-bg"></div>
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                </svg>
+              </div>
+            </div>
             <h3>Smart Search</h3>
-            <p>Find nearby available parking spaces with distance calculation</p>
+            <p>Find nearby available parking spaces with precise distance calculation and route guidance</p>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">📊</div>
+          <div class="feature-card" @mouseenter="animateFeature" @mouseleave="resetFeature">
+            <div class="feature-icon-wrapper">
+              <div class="feature-icon-bg"></div>
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+              </div>
+            </div>
             <h3>Analytics</h3>
-            <p>Detailed statistics and insights about parking patterns</p>
+            <p>Detailed statistics and insights about parking patterns to help you make informed decisions</p>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- How It Works -->
-    <section class="how-it-works-section">
-      <div class="container">
-        <h2 class="section-title">How It Works</h2>
-        <div class="steps-grid">
-          <div class="step-card">
-            <div class="step-number">1</div>
-            <h3>Search Location</h3>
-            <p>Enter your destination or browse the interactive map</p>
-          </div>
-          <div class="step-card">
-            <div class="step-number">2</div>
-            <h3>View Availability</h3>
-            <p>See real-time parking status and available spaces</p>
-          </div>
-          <div class="step-card">
-            <div class="step-number">3</div>
-            <h3>Park Smart</h3>
-            <p>Navigate to your chosen parking spot and save time</p>
-          </div>
+        <!-- CTA Section integrated -->
+        <div class="integrated-cta">
+          <h2>Ready to Stop Circling?</h2>
+          <p>Join thousands of Melbourne drivers who've already discovered smarter parking.</p>
+          <button @click="goToDashboard" class="btn btn-explore">Explore</button>
         </div>
       </div>
     </section>
@@ -96,7 +109,7 @@
             <div class="stat-label">Coverage Area</div>
           </div>
           <div class="stat-item">
-            <div class="stat-number">24/7</div>
+            <div class="stat-number">10/8</div>
             <div class="stat-label">Live Updates</div>
           </div>
           <div class="stat-item">
@@ -104,15 +117,6 @@
             <div class="stat-label">Service</div>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- Final CTA -->
-    <section class="cta-section" id="about">
-      <div class="container">
-        <h2>Ready to Stop Circling?</h2>
-        <p>Join thousands of Melbourne drivers who've already discovered smarter parking.</p>
-        <button @click="goToDashboard" class="btn btn-explore">Explore</button>
       </div>
     </section>
 
@@ -150,6 +154,14 @@ export default {
       document.getElementById('features').scrollIntoView({
         behavior: 'smooth'
       })
+    },
+    animateFeature(event) {
+      const card = event.currentTarget;
+      card.querySelector('.feature-icon').classList.add('animate');
+    },
+    resetFeature(event) {
+      const card = event.currentTarget;
+      card.querySelector('.feature-icon').classList.remove('animate');
     }
   }
 }
@@ -340,168 +352,428 @@ export default {
 }
 
 .section-title {
-  font-size: 2.5rem;
+  position: relative;
+  font-size: 2.8rem;
+  font-weight: 700;
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 4rem;
   color: #2c3e50;
+}
+
+.title-underline {
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #3498db, #2980b9);
+  margin: 1rem auto 0;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.title-underline::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+  animation: shimmer 2s ease-in-out infinite;
 }
 
 .stats-section .section-title {
   color: white;
 }
 
-/* Feature Cards */
+/* Feature Cards Enhanced */
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2.5rem;
+  margin-top: 4rem;
 }
 
 .feature-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  padding: 2.5rem 2rem;
+  border-radius: 16px;
   text-align: center;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  transition: transform 0.3s ease;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3498db, #2980b9);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .feature-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(52, 152, 219, 0.15);
+}
+
+.feature-card:hover::before {
+  opacity: 1;
+}
+
+.feature-icon-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 2rem;
+}
+
+.feature-icon-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.2));
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
 }
 
 .feature-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+  position: relative;
+  width: 48px;
+  height: 48px;
+  color: #3498db;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.feature-icon.animate {
+  transform: rotate(360deg) scale(1.1);
+  color: #2980b9;
+}
+
+.feature-card:hover .feature-icon-bg {
+  transform: translate(-50%, -50%) scale(1.2);
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.2), rgba(41, 128, 185, 0.3));
 }
 
 .feature-card h3 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
+  font-weight: 600;
   margin-bottom: 1rem;
   color: #2c3e50;
+  transition: color 0.3s ease;
 }
 
-/* Steps */
-.steps-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 3rem;
-}
-
-.step-card {
-  text-align: center;
-}
-
-.step-number {
-  width: 60px;
-  height: 60px;
-  background-color: #3498db;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 0 auto 1.5rem;
-}
-
-/* Stats */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
-  text-align: center;
-}
-
-.stat-number {
-  font-size: 3rem;
-  font-weight: bold;
+.feature-card:hover h3 {
   color: #3498db;
 }
 
-.stat-label {
-  font-size: 1.2rem;
-  margin-top: 0.5rem;
+.feature-card p {
+  color: #666;
+  line-height: 1.6;
+  font-size: 1rem;
 }
 
-/* CTA Section */
-.cta-section h2 {
-  font-size: 3rem;
+/* Integrated CTA within Features Section */
+.integrated-cta {
+  text-align: center;
+  margin-top: 4rem;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.05), rgba(41, 128, 185, 0.08));
+  border-radius: 20px;
+  border: 1px solid rgba(52, 152, 219, 0.1);
+}
+
+.integrated-cta h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
   margin-bottom: 1rem;
   color: #2c3e50;
 }
 
-.cta-section p {
+.integrated-cta p {
   font-size: 1.3rem;
   margin-bottom: 2rem;
   color: #666;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .btn-explore {
-  background-color: #27ae60;
+  background: linear-gradient(135deg, #3498db, #2980b9);
   color: white;
   font-size: 1.3rem;
+  font-weight: 600;
   padding: 1.2rem 3rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+  transition: all 0.3s ease;
 }
 
 .btn-explore:hover {
-  background-color: #229954;
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #2980b9, #1f5f8b);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(52, 152, 219, 0.4);
 }
 
-/* Footer */
-.footer {
-  background-color: #2c3e50;
+/* Enhanced Stats Section */
+.stats-section {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
   color: white;
-  text-align: center;
-  padding: 2rem 0;
+  padding: 4rem 0;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
+.stats-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(52, 152, 219, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(52, 152, 219, 0.08) 0%, transparent 50%);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3rem;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.stat-item {
+  padding: 2rem 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.stat-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #3498db;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.3;
+}
+
+/* Remove old CTA section styles since it's now integrated */
+.cta-section {
+  display: none;
+}
+
+/* Responsive Design for Stats */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
   }
-  to {
-    opacity: 1;
+
+  .stat-number {
+    font-size: 2.2rem;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    max-width: 400px;
+  }
+
+  .stat-item {
+    padding: 1.5rem 1rem;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+  }
+
+  .integrated-cta {
+    margin-top: 3rem;
+    padding: 2rem 1.5rem;
+  }
+
+  .integrated-cta h2 {
+    font-size: 2rem;
+  }
+
+  .integrated-cta p {
+    font-size: 1.1rem;
+  }
+}
+
+/* Animation for stats when in view */
+.stat-item {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.stat-item:nth-child(1) { animation-delay: 0.1s; }
+.stat-item:nth-child(2) { animation-delay: 0.2s; }
+.stat-item:nth-child(3) { animation-delay: 0.3s; }
+.stat-item:nth-child(4) { animation-delay: 0.4s; }
+
+/* Enhanced Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
     transform: translateY(0);
   }
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateX(-50%) translateY(0);
-  }
-  40% {
-    transform: translateX(-50%) translateY(-10px);
-  }
-  60% {
-    transform: translateX(-50%) translateY(-5px);
+  50% {
+    transform: translateY(-10px);
   }
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .nav-menu {
-    display: none;
+@keyframes progressFill {
+  0% {
+    width: 0%;
   }
+  33% {
+    width: 33.33%;
+  }
+  66% {
+    width: 66.66%;
+  }
+  100% {
+    width: 100%;
+  }
+}
 
-  .hero-buttons {
+@keyframes dotPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+/* Responsive Design Enhanced */
+@media (max-width: 1024px) {
+  .steps-container {
     flex-direction: column;
     align-items: center;
   }
 
-  .btn {
-    width: 100%;
-    max-width: 300px;
+  .step-arrow {
+    transform: rotate(90deg);
+    margin: 1rem 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
   }
 
-  .features-grid,
-  .steps-grid,
-  .stats-grid {
-    grid-template-columns: 1fr;
+  .feature-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .step-card {
+    min-width: auto;
+    padding: 1.5rem;
+  }
+
+  .step-arrow {
+    display: none;
+  }
+
+  .progress-indicator {
+    margin-top: 2rem;
+  }
+}
+
+/* Additional improvements for section titles */
+.section-title {
+  position: relative;
+  font-size: 2.8rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 4rem;
+  color: #2c3e50;
+}
+
+.title-underline {
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #3498db, #2980b9);
+  margin: 1rem auto 0;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.title-underline::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 100%;
   }
 }
 </style>
