@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import router from './router'
 import './assets/css/style.css'
 import 'leaflet/dist/leaflet.css'
 
@@ -12,4 +13,4 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png'
 })
 
-createApp(App).mount('#app')
+createApp(App).use(router).mount('#app')
