@@ -7,7 +7,6 @@ services:
     rootDir: melbourne-parking-website/backend
     buildCommand: pip install -r requirements.txt && python init_render_data.py
     startCommand: python run.py
-    plan: free
     envVars:
       - key: FLASK_ENV
         value: production
