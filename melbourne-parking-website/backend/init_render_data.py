@@ -29,7 +29,15 @@ def init_render_database():
         logger.error("❌ DATABASE_URL environment variable not found")
         return False
 
+    # Check if DATABASE_URL is SQLite format and reject it
+    if database_url.startswith('sqlite:'):
+        logger.error("❌ DATABASE_URL is SQLite format, but PostgreSQL is required")
+        logger.error(f"Current DATABASE_URL: {database_url}")
+        logger.error("Please check your Render environment variables and ensure PostgreSQL database is properly configured")
+        return False
+
     logger.info(f"🗄️ Connecting to PostgreSQL database...")
+    logger.info(f"Database URL format: {database_url.split('@')[0]}@***")
 
     try:
         # Create database connection
@@ -412,148 +420,4 @@ def import_sensor_status_from_csv(cursor, csv_file):
                         # Use actual status or generate realistic one
                         status = row.get('status', '').strip()
                         if not status:
-                            status = 'Present' if imported_count % 3 == 0 else 'Unoccupied'
-
-                        timestamp = datetime.now()
-
-                        # Prepare data for bulk insert
-                        current_data.append((
-                            kerbside_id, 1, status, timestamp, timestamp
-                        ))
-
-                        history_data.append((
-                            kerbside_id, 1, status, timestamp
-                        ))
-
-                        imported_count += 1
-
-                        # Log progress for every 1000 records
-                        if imported_count % 1000 == 0:
-                            logger.info(f"   Processed {imported_count} sensor status records...")
-
-                except (ValueError, TypeError):
-                    continue
-
-            # Bulk insert current status
-            if current_data:
-                execute_values(
-                    cursor,
-                    """INSERT INTO parking_status_current (
-                        kerbside_id, zone_number, status_description, last_updated, status_timestamp
-                    ) VALUES %s ON CONFLICT (kerbside_id) DO UPDATE SET
-                        zone_number = EXCLUDED.zone_number,
-                        status_description = EXCLUDED.status_description,
-                        last_updated = EXCLUDED.last_updated,
-                        status_timestamp = EXCLUDED.status_timestamp,
-                        updated_at = CURRENT_TIMESTAMP""",
-                    current_data
-                )
-
-            # Bulk insert history
-            if history_data:
-                execute_values(
-                    cursor,
-                    """INSERT INTO parking_status_history (
-                        kerbside_id, zone_number, status_description, status_timestamp
-                    ) VALUES %s""",
-                    history_data
-                )
-
-            logger.info(f"✅ Sensor status import completed - {len(current_data)} current records, {len(history_data)} history records")
-
-    except Exception as e:
-        logger.error(f"❌ Error importing sensor status: {e}")
-        create_mock_status_data(cursor)
-
-def create_mock_status_data(cursor):
-    """Create mock status data for all parking bays"""
-
-    logger.info("🎭 Creating mock status data for parking bays...")
-
-    try:
-        # Get all parking bay IDs
-        cursor.execute("SELECT kerbside_id FROM parking_bays")
-        bay_ids = [row[0] for row in cursor.fetchall()]
-
-        current_data = []
-        history_data = []
-
-        for i, bay_id in enumerate(bay_ids):
-            # Realistic status distribution: 40% occupied, 60% available
-            status = 'Present' if i % 5 < 2 else 'Unoccupied'
-            timestamp = datetime.now()
-
-            current_data.append((bay_id, 1, status, timestamp, timestamp))
-            history_data.append((bay_id, 1, status, timestamp))
-
-        # Bulk insert current status
-        if current_data:
-            execute_values(
-                cursor,
-                """INSERT INTO parking_status_current (
-                    kerbside_id, zone_number, status_description, last_updated, status_timestamp
-                ) VALUES %s ON CONFLICT (kerbside_id) DO NOTHING""",
-                current_data
-            )
-
-        # Bulk insert history
-        if history_data:
-            execute_values(
-                cursor,
-                """INSERT INTO parking_status_history (
-                    kerbside_id, zone_number, status_description, status_timestamp
-                ) VALUES %s""",
-                history_data
-            )
-
-        logger.info(f"✅ Mock status data created - {len(current_data)} records")
-
-    except Exception as e:
-        logger.error(f"❌ Error creating mock status data: {e}")
-
-def verify_data_import(cursor):
-    """Verify and report the results of data import"""
-
-    logger.info("📊 Data verification:")
-
-    try:
-        # Check table record counts
-        tables = [
-            'victoria_population_growth',
-            'melbourne_population_history',
-            'parking_bays',
-            'parking_status_current',
-            'parking_status_history'
-        ]
-
-        for table in tables:
-            cursor.execute(f"SELECT COUNT(*) FROM {table}")
-            count = cursor.fetchone()[0]
-            logger.info(f"   - {table}: {count:,}")
-
-        # Check available vs occupied parking
-        cursor.execute("""
-            SELECT 
-                status_description,
-                COUNT(*) as count
-            FROM parking_status_current 
-            GROUP BY status_description
-        """)
-
-        status_counts = cursor.fetchall()
-        for status, count in status_counts:
-            logger.info(f"   - {status} Spots: {count:,}")
-
-        # Sample data check
-        cursor.execute("SELECT * FROM parking_bays LIMIT 3")
-        sample_bays = cursor.fetchall()
-        logger.info("📋 Sample parking bays:")
-        for bay in sample_bays:
-            logger.info(f"   Bay {bay[0]} at ({bay[3]:.4f}, {bay[4]:.4f})")
-
-    except Exception as e:
-        logger.error(f"❌ Data verification failed: {e}")
-
-if __name__ == '__main__':
-    success = init_render_database()
-    exit(0 if success else 1)
+                            status = 'Present' if imported_count % 3 == 0 :
