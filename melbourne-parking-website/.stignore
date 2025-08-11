@@ -1,0 +1,23 @@
+# Streamlit ignore file
+# Tell Streamlit to ignore backend directory and related files
+
+# Ignore entire backend directory
+backend/
+
+# Ignore other non-Streamlit directories
+frontend/
+config/
+docs/
+
+# Ignore data files
+*.csv
+*.sql
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore IDE files
+.idea/
+.vscode/

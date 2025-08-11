@@ -11,6 +11,22 @@
             </PendingDiffInfo>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/melbourne-parking-website/.stignore">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/melbourne-parking-website/.stignore" />
+              <option name="updatedContent" value="# Streamlit ignore file&#10;# Tell Streamlit to ignore backend directory and related files&#10;&#10;# Ignore entire backend directory&#10;backend/&#10;&#10;# Ignore other non-Streamlit directories&#10;frontend/&#10;config/&#10;docs/&#10;&#10;# Ignore data files&#10;*.csv&#10;*.sql&#10;&#10;# Ignore Python cache&#10;__pycache__/&#10;*.pyc&#10;*.pyo&#10;&#10;# Ignore IDE files&#10;.idea/&#10;.vscode/" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/melbourne-parking-website/.streamlit/config.toml">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/melbourne-parking-website/.streamlit/config.toml" />
+              <option name="updatedContent" value="[server]&#10;# Server configuration&#10;runOnSave = true&#10;&#10;[runner]&#10;# Ignore backend directory to prevent Flask import conflicts&#10;magicEnabled = true&#10;&#10;[global]&#10;# Development settings&#10;developmentMode = false" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/melbourne-parking-website/Procfile">
           <value>
             <PendingDiffInfo>
@@ -139,6 +155,14 @@
               <option name="filePath" value="$PROJECT_DIR$/melbourne-parking-website/railway.json" />
               <option name="originalContent" value="{&#10;  &quot;$schema&quot;: &quot;https://railway.app/railway.schema.json&quot;,&#10;  &quot;build&quot;: {&#10;    &quot;builder&quot;: &quot;NIXPACKS&quot;&#10;  },&#10;  &quot;deploy&quot;: {&#10;    &quot;startCommand&quot;: &quot;cd backend &amp;&amp; gunicorn --bind 0.0.0.0:$PORT run:app&quot;,&#10;    &quot;restartPolicyType&quot;: &quot;ON_FAILURE&quot;,&#10;    &quot;restartPolicyMaxRetries&quot;: 10&#10;  }&#10;}&#10;&#10;" />
               <option name="updatedContent" value="{&#10;  &quot;$schema&quot;: &quot;https://railway.app/railway.schema.json&quot;,&#10;  &quot;build&quot;: {&#10;    &quot;builder&quot;: &quot;NIXPACKS&quot;,&#10;    &quot;buildCommand&quot;: &quot;cd melbourne-parking-website/frontend &amp;&amp; npm install &amp;&amp; npm run build&quot;&#10;  },&#10;  &quot;deploy&quot;: {&#10;    &quot;startCommand&quot;: &quot;cd melbourne-parking-website/backend &amp;&amp; python run.py&quot;,&#10;    &quot;restartPolicyType&quot;: &quot;ON_FAILURE&quot;,&#10;    &quot;restartPolicyMaxRetries&quot;: 10&#10;  }&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/melbourne-parking-website/requirements.txt">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/melbourne-parking-website/requirements.txt" />
+              <option name="updatedContent" value="# Streamlit application dependencies&#10;# Core framework&#10;streamlit&#10;&#10;# Data manipulation and analysis&#10;pandas&#10;numpy&#10;&#10;# Visualization&#10;plotly&#10;&#10;# Additional utilities for data handling&#10;python-dateutil" />
             </PendingDiffInfo>
           </value>
         </entry>

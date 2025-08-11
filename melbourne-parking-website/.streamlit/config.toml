@@ -1,0 +1,11 @@
+[server]
+# Server configuration
+runOnSave = true
+
+[runner]
+# Ignore backend directory to prevent Flask import conflicts
+magicEnabled = true
+
+[global]
+# Development settings
+developmentMode = false
