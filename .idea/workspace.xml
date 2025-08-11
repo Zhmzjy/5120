@@ -5,9 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="527a59dc-fd7a-4270-b98b-4e79235b5e0d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/melbourne-parking-website/requirments.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/copilotDiffState.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/copilotDiffState.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/melbourne-parking-website/.stignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/melbourne-parking-website/.streamlit/config.toml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/melbourne-parking-website/backend/requirements.txt" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,7 +81,7 @@
       <workItem from="1754640670375" duration="1599000" />
       <workItem from="1754795984748" duration="910000" />
       <workItem from="1754796897485" duration="35000" />
-      <workItem from="1754796934850" duration="11540000" />
+      <workItem from="1754796934850" duration="12568000" />
     </task>
     <servers />
   </component>

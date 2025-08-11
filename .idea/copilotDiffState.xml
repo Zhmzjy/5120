@@ -53,6 +53,13 @@
             </PendingDiffInfo>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/melbourne-parking-website/backend/__init__.py">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/melbourne-parking-website/backend/__init__.py" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/melbourne-parking-website/backend/run.py">
           <value>
             <PendingDiffInfo>
@@ -163,6 +170,14 @@
             <PendingDiffInfo>
               <option name="filePath" value="$PROJECT_DIR$/melbourne-parking-website/requirements.txt" />
               <option name="updatedContent" value="# Streamlit application dependencies&#10;# Core framework&#10;streamlit&#10;&#10;# Data manipulation and analysis&#10;pandas&#10;numpy&#10;&#10;# Visualization&#10;plotly&#10;&#10;# Additional utilities for data handling&#10;python-dateutil" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/melbourne-parking-website/vercel.json">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/melbourne-parking-website/vercel.json" />
+              <option name="updatedContent" value="# Vercel deployment configuration for Vue.js frontend&#10;name = &quot;melbourne-parking-frontend&quot;&#10;version = 2&#10;&#10;[[builds]]&#10;src = &quot;frontend/package.json&quot;&#10;use = &quot;@vercel/static-build&quot;&#10;config = { distDir = &quot;frontend/dist&quot; }&#10;&#10;[[routes]]&#10;src = &quot;/(.*)&quot;&#10;dest = &quot;/index.html&quot;" />
             </PendingDiffInfo>
           </value>
         </entry>

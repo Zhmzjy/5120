@@ -1,17 +1,32 @@
 from flask import Flask
 from flask_cors import CORS
 from models.parking import db
+import os
 
 def create_website():
     website = Flask(__name__)
 
-    # Database configuration
-    website.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://melbourne_parking:zjy0312!@localhost:5432/melbourne_parking_system'
+    # Database configuration - use environment variables for production
+    if os.getenv('DATABASE_URL'):
+        # Railway PostgreSQL connection
+        website.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+    else:
+        # Local development database
+        website.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://melbourne_parking:zjy0312!@localhost:5432/melbourne_parking_system'
+
     website.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Initialize extensions
     db.init_app(website)
-    CORS(website)
+
+    # Configure CORS for production deployment
+    if os.getenv('FLASK_ENV') == 'production':
+        CORS(website, origins=[
+            'https://*.vercel.app',
+            'https://melbourne-parking-frontend.vercel.app'
+        ])
+    else:
+        CORS(website)  # Allow all origins in development
 
     # Register blueprints
     from api.parking_routes import parking_routes
@@ -26,5 +41,6 @@ def create_website():
 
 if __name__ == '__main__':
     app = create_website()
-    print("Melbourne Parking Website backend starting on http://localhost:5002")
-    app.run(debug=True, port=5002)
+    port = int(os.environ.get('PORT', 5002))
+    print(f"Melbourne Parking Website backend starting on port {port}")
+    app.run(debug=False, host='0.0.0.0', port=port)
