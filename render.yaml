@@ -42,5 +42,5 @@ services:
 
 databases:
   - name: melbourne-parking-db
-    databaseName: Melbourne_Parking
+    databaseName: melbourne_parking
     plan: free
