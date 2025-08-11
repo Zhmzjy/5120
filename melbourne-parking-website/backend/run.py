@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Main entry point for the Melbourne Parking System backend
-This file is used by Railway for deployment
+This file is used by Render for deployment
 """
 
 import os

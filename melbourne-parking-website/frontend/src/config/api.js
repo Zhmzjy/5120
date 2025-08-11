@@ -4,7 +4,8 @@ const config = {
     API_BASE_URL: 'http://localhost:5002'
   },
   production: {
-    API_BASE_URL: import.meta.env.VITE_API_URL || 'https://te21-fit5120-production.up.railway.app'
+    // Render backend URL - will be updated after backend deployment
+    API_BASE_URL: import.meta.env.VITE_API_URL || 'https://your-render-backend.onrender.com'
   }
 }
 
