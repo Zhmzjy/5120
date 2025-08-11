@@ -1,4 +1,9 @@
 services:
+  # PostgreSQL Database
+  - type: pserv
+    name: melbourne-parking-db
+    env: docker
+
   # Flask Backend API
   - type: web
     name: melbourne-parking-backend
@@ -10,10 +15,10 @@ services:
     envVars:
       - key: FLASK_ENV
         value: production
-      - key: DATABASE_PATH
-        value: "/opt/render/project/src/parking.db"
       - key: DATABASE_URL
-        value: "sqlite:////opt/render/project/src/parking.db"
+        fromDatabase:
+          name: melbourne-parking-db
+          property: connectionString
       - key: PORT
         value: 10000
 
@@ -28,3 +33,8 @@ services:
     envVars:
       - key: VITE_API_URL
         value: "https://melbourne-parking-backend.onrender.com"
+
+databases:
+  - name: melbourne-parking-db
+    databaseName: melbourne_parking
+    user: postgres
