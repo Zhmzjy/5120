@@ -23,9 +23,14 @@ def main():
     # Add backend to Python path
     sys.path.insert(0, backend_dir)
 
-    # Set environment variables
+    # Set environment variables - let Railway handle PORT
     os.environ.setdefault('FLASK_ENV', 'production')
-    os.environ.setdefault('PORT', '8000')
+
+    # Ensure DATABASE_URL is properly set
+    if not os.environ.get('DATABASE_URL'):
+        print("WARNING: DATABASE_URL environment variable not found")
+    else:
+        print(f"Using DATABASE_URL: {os.environ.get('DATABASE_URL')[:50]}...")
 
     try:
         # Import and run the Flask application
