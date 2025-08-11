@@ -28,6 +28,14 @@ def create_website():
     else:
         CORS(website)  # Allow all origins in development
 
+    # Create tables if they don't exist
+    with website.app_context():
+        try:
+            db.create_all()
+            print("Database tables created successfully")
+        except Exception as e:
+            print(f"Error creating database tables: {e}")
+
     # Register blueprints
     from api.parking_routes import parking_routes
     from api.statistics_routes import statistics_routes
