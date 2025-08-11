@@ -1,26 +1,25 @@
 #!/usr/bin/env python3
 """
-Main entry point for the Melbourne Parking System backend
-This file is used by Render for deployment
+Melbourne Parking Website - Main Application Entry Point
+This file starts the Flask application server
 """
 
 import os
-import sys
 from website import create_website
 
-# Add backend directory to Python path
-backend_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, backend_dir)
-
-# Create Flask application
+# Create Flask application instance
 app = create_website()
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5002))
-    host = '0.0.0.0'
-    debug = os.environ.get('FLASK_ENV') != 'production'
+    # Get port from environment variable (Render sets PORT automatically)
+    port = int(os.environ.get('PORT', 5000))
 
-    print(f"Starting Melbourne Parking System backend on {host}:{port}")
-    print(f"Debug mode: {debug}")
+    # Run the application
+    print(f"Starting Melbourne Parking System backend on 0.0.0.0:{port}")
+    print(f"Debug mode: {os.environ.get('FLASK_ENV') != 'production'}")
 
-    app.run(host=host, port=port, debug=debug)
+    app.run(
+        host='0.0.0.0',
+        port=port,
+        debug=os.environ.get('FLASK_ENV') != 'production'
+    )
