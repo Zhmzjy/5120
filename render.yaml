@@ -8,7 +8,7 @@ services:
   # Flask Backend API
   - type: web
     name: melbourne-parking-backend
-    runtime: python3
+    env: python3
     repo: https://github.com/Zhmzjy/TE21-FIT5120.git
     rootDir: melbourne-parking-website/backend
     buildCommand: ./build.sh
