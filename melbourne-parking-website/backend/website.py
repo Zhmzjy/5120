@@ -22,8 +22,8 @@ def create_website():
     # Configure CORS for production deployment
     if os.getenv('FLASK_ENV') == 'production':
         CORS(website, origins=[
-            'https://*.vercel.app',
-            'https://melbourne-parking-frontend.vercel.app'
+            'https://*.onrender.com',
+            'https://melbourne-parking-frontend.onrender.com'
         ])
     else:
         CORS(website)  # Allow all origins in development
