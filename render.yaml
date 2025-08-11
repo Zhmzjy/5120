@@ -1,10 +1,4 @@
 services:
-  # PostgreSQL Database
-  - type: pserv
-    name: melbourne-parking-db
-    env: docker
-    plan: free
-
   # Flask Backend API
   - type: web
     name: melbourne-parking-backend
@@ -17,9 +11,7 @@ services:
       - key: FLASK_ENV
         value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: melbourne-parking-db
-          property: connectionString
+        value: "sqlite:///parking.db"
       - key: PORT
         value: 10000
 
@@ -37,8 +29,3 @@ services:
           type: web
           name: melbourne-parking-backend
           property: host
-
-databases:
-  - name: melbourne-parking-db
-    databaseName: melbourne_parking
-    plan: free
