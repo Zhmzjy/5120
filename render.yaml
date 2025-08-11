@@ -12,7 +12,7 @@ services:
     pythonVersion: "3.11"
     repo: https://github.com/Zhmzjy/TE21-FIT5120.git
     rootDir: melbourne-parking-website/backend
-    buildCommand: ./build.sh
+    buildCommand: pip install -r requirements.txt
     startCommand: python run.py
     plan: free
     envVars:
