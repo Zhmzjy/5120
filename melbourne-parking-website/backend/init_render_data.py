@@ -22,9 +22,16 @@ logger = logging.getLogger(__name__)
 def init_render_database():
     """Initialize SQLite database with essential data for Render deployment"""
 
-    db_path = 'parking.db'
+    # Use absolute path with environment variable fallback
+    db_path = os.getenv('DATABASE_PATH', '/opt/render/project/src/parking.db')
+
+    # Log the database path being used
+    logger.info(f"🗄️ Using database path: {db_path}")
 
     try:
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+
         # Create database connection
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()

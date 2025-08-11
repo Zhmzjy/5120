@@ -10,8 +10,10 @@ services:
     envVars:
       - key: FLASK_ENV
         value: production
+      - key: DATABASE_PATH
+        value: "/opt/render/project/src/parking.db"
       - key: DATABASE_URL
-        value: "sqlite:///parking.db"
+        value: "sqlite:////opt/render/project/src/parking.db"
       - key: PORT
         value: 10000
 
