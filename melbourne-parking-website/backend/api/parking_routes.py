@@ -53,7 +53,15 @@ def get_current_parking_status():
         return jsonify(results)
 
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        # Add detailed error logging
+        print(f"ERROR in get_current_parking_status: {str(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': 'Database query failed - tables may be empty or not exist'
+        }), 500
 
 @parking_routes.route('/nearby', methods=['GET'])
 def find_nearby_parking():
