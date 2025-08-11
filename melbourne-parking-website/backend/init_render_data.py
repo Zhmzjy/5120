@@ -428,6 +428,24 @@ def import_sensor_status_from_csv(cursor, csv_file):
         logger.error(f"Failed to import sensor data: {e}")
         create_sample_status_data(cursor)
 
+def _safe_int(value):
+    """Safely convert value to integer"""
+    if value is None or value == '' or value == 'nan':
+        return None
+    try:
+        return int(float(str(value).replace(',', '')))
+    except:
+        return None
+
+def _safe_float(value):
+    """Safely convert value to float"""
+    if value is None or value == '' or value == 'nan':
+        return None
+    try:
+        return float(str(value).replace(',', ''))
+    except:
+        return None
+
 def create_sample_victoria_data(cursor):
     """Create sample Victoria population growth data"""
 
