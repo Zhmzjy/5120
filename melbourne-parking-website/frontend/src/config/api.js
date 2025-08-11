@@ -4,8 +4,8 @@ const config = {
     API_BASE_URL: 'http://localhost:5002'
   },
   production: {
-    // Render backend URL - will be updated after backend deployment
-    API_BASE_URL: import.meta.env.VITE_API_URL || 'https://your-render-backend.onrender.com'
+    // Replace with your actual Render backend URL
+    API_BASE_URL: import.meta.env.VITE_API_URL || 'https://melbourne-parking-backend.onrender.com'
   }
 }
 
