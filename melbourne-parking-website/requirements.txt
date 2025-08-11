@@ -1,0 +1,13 @@
+# Streamlit application dependencies
+# Core framework
+streamlit
+
+# Data manipulation and analysis
+pandas
+numpy
+
+# Visualization
+plotly
+
+# Additional utilities for data handling
+python-dateutil
