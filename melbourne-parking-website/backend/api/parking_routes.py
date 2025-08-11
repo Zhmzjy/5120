@@ -83,6 +83,41 @@ def get_current_parking_status():
             'error': str(e)
         }), 500
 
+@parking_routes.route('/streets', methods=['GET'])
+def get_streets_list():
+    """Get list of streets with parking statistics"""
+    try:
+        # Get streets with total bay counts
+        streets_data = db.session.query(
+            ParkingBay.road_segment_description,
+            func.count(ParkingBay.kerbside_id).label('total_bays'),
+            func.count(func.nullif(ParkingStatusCurrent.status_description, 'Occupied')).label('available_bays')
+        ).join(
+            ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
+        ).filter(
+            ParkingBay.road_segment_description.isnot(None)
+        ).group_by(
+            ParkingBay.road_segment_description
+        ).order_by(
+            func.count(ParkingBay.kerbside_id).desc()
+        ).limit(50).all()
+
+        results = []
+        for street_name, total_bays, available_bays in streets_data:
+            occupancy_rate = round(((total_bays - available_bays) / total_bays * 100), 1) if total_bays > 0 else 0
+
+            results.append({
+                'street_name': street_name,
+                'total_bays': total_bays,
+                'available_bays': available_bays or 0,
+                'occupancy_rate': occupancy_rate
+            })
+
+        return jsonify(results)
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @parking_routes.route('/nearby', methods=['GET'])
 def find_nearby_parking():
     """Find nearby available parking spaces"""
@@ -129,50 +164,6 @@ def find_nearby_parking():
             'search_center': {'lat': lat, 'lng': lng},
             'search_radius': radius
         })
-
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@parking_routes.route('/streets', methods=['GET'])
-def get_streets_list():
-    """Get list of streets with parking statistics"""
-    try:
-        # Get streets with total bay counts first
-        streets_total = db.session.query(
-            ParkingBay.road_segment_description,
-            func.count(ParkingBay.kerbside_id).label('total_bays')
-        ).join(
-            ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
-        ).filter(
-            ParkingBay.road_segment_description.isnot(None)
-        ).group_by(
-            ParkingBay.road_segment_description
-        ).order_by(
-            func.count(ParkingBay.kerbside_id).desc()
-        ).limit(50).all()
-
-        streets_data = []
-        for street_name, total_bays in streets_total:
-            # Get available bays count for this street
-            available_count = db.session.query(
-                func.count(ParkingBay.kerbside_id)
-            ).join(
-                ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
-            ).filter(
-                ParkingBay.road_segment_description == street_name,
-                ParkingStatusCurrent.status_description == 'Unoccupied'
-            ).scalar() or 0
-
-            occupancy_rate = round(((total_bays - available_count) / total_bays * 100), 1) if total_bays > 0 else 0
-
-            streets_data.append({
-                'street_name': street_name,
-                'total_bays': total_bays,
-                'available_bays': available_count,
-                'occupancy_rate': occupancy_rate
-            })
-
-        return jsonify(streets_data)
 
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
