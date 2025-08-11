@@ -30,6 +30,7 @@ services:
     rootDir: melbourne-parking-website/frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
+    plan: free
     envVars:
       - key: VITE_API_URL
         fromService:
@@ -40,3 +41,4 @@ services:
 databases:
   - name: melbourne-parking-db
     databaseName: melbourne_parking
+    plan: free
