@@ -8,17 +8,17 @@ def create_website():
 
     # Database configuration - use environment variables for production
     if os.getenv('DATABASE_URL'):
-        # Railway PostgreSQL connection
+        # Production deployment (Render) - use DATABASE_URL from environment
         website.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
     else:
         # Local development database
         website.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://melbourne_parking:zjy0312!@localhost:5432/melbourne_parking_system'
-    
+
     website.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Initialize extensions
     db.init_app(website)
-    
+
     # Configure CORS for production deployment
     if os.getenv('FLASK_ENV') == 'production':
         CORS(website, origins=[

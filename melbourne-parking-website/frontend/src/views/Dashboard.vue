@@ -98,8 +98,9 @@ export default {
       try {
         console.log('Loading parking data...')
         const response = await parkingService.getCurrentParkingStatus()
-        this.parkingData = response
-        console.log(`Loaded ${response.length} parking bays`)
+        // Fix: Extract data array from response object
+        this.parkingData = response.data || response || []
+        console.log(`Loaded ${this.parkingData.length} parking bays`)
       } catch (error) {
         console.error('Error loading parking data:', error)
         this.parkingData = []

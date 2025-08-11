@@ -5,7 +5,7 @@ services:
     env: python
     repo: https://github.com/Zhmzjy/TE21-FIT5120.git
     rootDir: melbourne-parking-website/backend
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && python init_render_data.py
     startCommand: python run.py
     envVars:
       - key: FLASK_ENV
