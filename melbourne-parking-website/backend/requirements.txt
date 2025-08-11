@@ -1,8 +1,6 @@
 # Backend Requirements for Railway Deployment
-Flask==3.0.0
+Flask==2.3.3
 Flask-CORS==4.0.0
-pandas==2.2.2
-numpy==1.26.4
 python-dotenv==1.0.0
-SQLAlchemy==2.0.23
+SQLAlchemy==2.0.21
 Werkzeug==2.3.7
