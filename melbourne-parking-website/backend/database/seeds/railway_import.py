@@ -447,6 +447,81 @@ class RailwayDataImporter:
             if 'conn' in locals():
                 conn.close()
 
+    def verify_tables_exist(self):
+        """Verify that all required tables exist in the database"""
+        logger.info("🔍 Verifying database tables exist...")
+
+        required_tables = [
+            'victoria_population_growth',
+            'melbourne_population_history',
+            'parking_bays',
+            'parking_status_current',
+            'parking_status_history',
+            'parking_hourly_stats',
+            'api_collection_log'
+        ]
+
+        try:
+            conn = self.get_database_connection()
+            cursor = conn.cursor()
+
+            # Check which tables exist
+            cursor.execute("""
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = 'public'
+            """)
+
+            existing_tables = [row[0] for row in cursor.fetchall()]
+            logger.info(f"Found existing tables: {existing_tables}")
+
+            missing_tables = [table for table in required_tables if table not in existing_tables]
+
+            if missing_tables:
+                logger.warning(f"Missing tables: {missing_tables}")
+                logger.info("💡 You may need to run the database initialization script first")
+                return False
+            else:
+                logger.info("✅ All required tables exist")
+                return True
+
+        except Exception as e:
+            logger.error(f"Failed to verify tables: {e}")
+            return False
+        finally:
+            if 'conn' in locals():
+                conn.close()
+
+    def get_table_counts(self):
+        """Get the current record count for each table"""
+        logger.info("📊 Checking current table record counts...")
+
+        tables = [
+            'victoria_population_growth',
+            'melbourne_population_history',
+            'parking_bays',
+            'parking_status_current',
+            'parking_status_history'
+        ]
+
+        try:
+            conn = self.get_database_connection()
+            cursor = conn.cursor()
+
+            for table in tables:
+                try:
+                    cursor.execute(f"SELECT COUNT(*) FROM {table}")
+                    count = cursor.fetchone()[0]
+                    logger.info(f"   {table}: {count} records")
+                except Exception as e:
+                    logger.error(f"   {table}: Error - {e}")
+
+        except Exception as e:
+            logger.error(f"Failed to get table counts: {e}")
+        finally:
+            if 'conn' in locals():
+                conn.close()
+
     def run_full_import(self):
         """Execute complete data import process"""
         logger.info("🚀 Starting Railway Melbourne Parking System data import...")
@@ -457,20 +532,48 @@ class RailwayDataImporter:
             conn.close()
             logger.info("✅ Database connection successful")
 
+            # Verify all tables exist
+            if not self.verify_tables_exist():
+                logger.error("❌ Required tables are missing. Please run database initialization first.")
+                return False
+
+            # Show current table counts
+            self.get_table_counts()
+
             # Import data in logical order - each with independent error handling
             logger.info("📊 Starting data import sequence...")
 
-            self.import_victoria_population_data()
-            self.import_melbourne_population_history()
-            self.import_parking_bays_data()
-            self.import_parking_sensor_data()
+            try:
+                self.import_victoria_population_data()
+            except Exception as e:
+                logger.error(f"Victoria population import failed: {e}")
 
-            logger.info("🎉 Complete Railway data import finished successfully!")
+            try:
+                self.import_melbourne_population_history()
+            except Exception as e:
+                logger.error(f"Melbourne population history import failed: {e}")
+
+            try:
+                self.import_parking_bays_data()
+            except Exception as e:
+                logger.error(f"Parking bays import failed: {e}")
+
+            try:
+                self.import_parking_sensor_data()
+            except Exception as e:
+                logger.error(f"Parking sensor data import failed: {e}")
+
+            # Show final table counts
+            logger.info("📈 Final table counts after import:")
+            self.get_table_counts()
+
+            logger.info("🎉 Complete Railway data import finished!")
             logger.info("💡 This script can now be safely deleted from your project")
+            return True
 
         except Exception as e:
             logger.error(f"Data import process failed: {e}")
-            raise
+            return False
 
 def main():
     """Main function to run the Railway data import"""
