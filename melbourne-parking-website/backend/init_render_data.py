@@ -295,23 +295,138 @@ def import_melbourne_population_data(cursor, csv_file):
         logger.error(f"Failed to import Melbourne population data: {e}")
         create_sample_melbourne_data(cursor)
 
-def _safe_int(value):
-    """Safely convert value to integer"""
-    if value is None or value == '' or value == 'nan':
-        return None
-    try:
-        return int(float(str(value).replace(',', '')))
-    except:
-        return None
+def import_parking_bays_from_csv(cursor, csv_file):
+    """Import parking bays data from CSV file"""
 
-def _safe_float(value):
-    """Safely convert value to float"""
-    if value is None or value == '' or value == 'nan':
-        return None
+    logger.info(f"🅿️ Importing parking bays from {csv_file}")
+
+    imported_count = 0
+    max_records = 5000  # Limit to prevent Render timeout
+
     try:
-        return float(str(value).replace(',', ''))
-    except:
-        return None
+        with open(csv_file, 'r', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+
+            for row in reader:
+                if imported_count >= max_records:
+                    break
+
+                try:
+                    # Validate required fields
+                    if not all([row.get('KerbsideID'), row.get('Latitude'), row.get('Longitude')]):
+                        continue
+
+                    kerbside_id = int(row['KerbsideID'])
+                    latitude = float(row['Latitude'])
+                    longitude = float(row['Longitude'])
+
+                    # Parse optional fields
+                    road_segment_id = None
+                    if row.get('RoadSegmentID') and row['RoadSegmentID'].strip():
+                        try:
+                            road_segment_id = int(row['RoadSegmentID'])
+                        except:
+                            pass
+
+                    # Insert parking bay record
+                    cursor.execute('''
+                        INSERT OR REPLACE INTO parking_bays 
+                        (kerbside_id, road_segment_id, road_segment_description, 
+                         latitude, longitude, location_string)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ''', (
+                        kerbside_id,
+                        road_segment_id,
+                        row.get('RoadSegmentDescription', '').strip() or None,
+                        latitude,
+                        longitude,
+                        row.get('Location', '').strip() or None
+                    ))
+
+                    imported_count += 1
+
+                    if imported_count % 1000 == 0:
+                        logger.info(f"   Imported {imported_count} parking bays...")
+
+                except Exception as e:
+                    logger.warning(f"Error importing parking bay {row.get('KerbsideID', 'Unknown')}: {e}")
+                    continue
+
+        logger.info(f"✅ Imported {imported_count} parking bays")
+
+    except Exception as e:
+        logger.error(f"Failed to import parking bays: {e}")
+        create_sample_parking_bays(cursor)
+
+def import_sensor_status_from_csv(cursor, csv_file):
+    """Import sensor status data from CSV file"""
+
+    logger.info(f"📡 Importing sensor status from {csv_file}")
+
+    # Get valid parking bay IDs
+    cursor.execute("SELECT kerbside_id FROM parking_bays")
+    valid_ids = {row[0] for row in cursor.fetchall()}
+
+    imported_count = 0
+    max_records = 3000  # Limit to prevent timeout
+
+    try:
+        with open(csv_file, 'r', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+
+            for row in reader:
+                if imported_count >= max_records:
+                    break
+
+                try:
+                    # Validate required fields
+                    if not all([row.get('KerbsideID'), row.get('Status_Description')]):
+                        continue
+
+                    kerbside_id = int(row['KerbsideID'])
+
+                    # Only import if parking bay exists
+                    if kerbside_id not in valid_ids:
+                        continue
+
+                    status_description = row['Status_Description'].strip()
+
+                    # Parse optional fields
+                    zone_number = None
+                    if row.get('Zone_Number') and row['Zone_Number'].strip():
+                        try:
+                            zone_number = int(row['Zone_Number'])
+                        except:
+                            pass
+
+                    # Insert current status
+                    cursor.execute('''
+                        INSERT OR REPLACE INTO parking_status_current 
+                        (kerbside_id, zone_number, status_description)
+                        VALUES (?, ?, ?)
+                    ''', (kerbside_id, zone_number, status_description))
+
+                    # Also insert into history table
+                    cursor.execute('''
+                        INSERT INTO parking_status_history 
+                        (kerbside_id, zone_number, status_description, data_collected_at)
+                        VALUES (?, ?, ?, ?)
+                    ''', (kerbside_id, zone_number, status_description, datetime.now()))
+
+                    imported_count += 1
+
+                    if imported_count % 500 == 0:
+                        logger.info(f"   Imported {imported_count} sensor records...")
+
+                except Exception as e:
+                    logger.warning(f"Error importing sensor data for {row.get('KerbsideID', 'Unknown')}: {e}")
+                    continue
+
+        logger.info(f"✅ Imported {imported_count} sensor status records")
+
+    except Exception as e:
+        logger.error(f"Failed to import sensor data: {e}")
+        create_sample_status_data(cursor)
 
 def create_sample_victoria_data(cursor):
     """Create sample Victoria population growth data"""
@@ -365,6 +480,64 @@ def create_sample_melbourne_data(cursor):
         ''', area_data)
 
     logger.info("✅ Created sample Melbourne population data")
+
+def create_sample_parking_bays(cursor):
+    """Create sample parking bays data for demonstration"""
+
+    logger.info("📝 Creating sample parking bays data...")
+
+    sample_bays = [
+        (1001, 100, "Collins Street between William Street and Queen Street", -37.8136, 144.9631, "Collins St"),
+        (1002, 100, "Collins Street between William Street and Queen Street", -37.8135, 144.9635, "Collins St"),
+        (1003, 101, "Bourke Street between William Street and Queen Street", -37.8139, 144.9634, "Bourke St"),
+        (1004, 101, "Bourke Street between William Street and Queen Street", -37.8138, 144.9638, "Bourke St"),
+        (1005, 102, "Flinders Street between William Street and Queen Street", -37.8183, 144.9648, "Flinders St"),
+        (1006, 102, "Flinders Street between William Street and Queen Street", -37.8182, 144.9652, "Flinders St"),
+        (1007, 103, "Little Collins Street between William Street and Queen Street", -37.8151, 144.9645, "Little Collins St"),
+        (1008, 103, "Little Collins Street between William Street and Queen Street", -37.8150, 144.9649, "Little Collins St"),
+    ]
+
+    for bay_data in sample_bays:
+        cursor.execute('''
+            INSERT OR REPLACE INTO parking_bays 
+            (kerbside_id, road_segment_id, road_segment_description, latitude, longitude, location_string)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', bay_data)
+
+    logger.info(f"✅ Created {len(sample_bays)} sample parking bays")
+
+def create_sample_status_data(cursor):
+    """Create sample status data for demonstration"""
+
+    logger.info("📝 Creating sample status data...")
+
+    # Get parking bay IDs
+    cursor.execute("SELECT kerbside_id FROM parking_bays LIMIT 8")
+    bay_ids = [row[0] for row in cursor.fetchall()]
+
+    # Create varied status data
+    sample_statuses = [
+        "Unoccupied", "Occupied", "Unoccupied", "Unoccupied",
+        "Occupied", "Unoccupied", "Occupied", "Unoccupied"
+    ]
+
+    for i, bay_id in enumerate(bay_ids):
+        status = sample_statuses[i] if i < len(sample_statuses) else "Unoccupied"
+        zone = (i % 3) + 1  # Zones 1, 2, 3
+
+        cursor.execute('''
+            INSERT OR REPLACE INTO parking_status_current 
+            (kerbside_id, zone_number, status_description)
+            VALUES (?, ?, ?)
+        ''', (bay_id, zone, status))
+
+        cursor.execute('''
+            INSERT INTO parking_status_history 
+            (kerbside_id, zone_number, status_description, data_collected_at)
+            VALUES (?, ?, ?, ?)
+        ''', (bay_id, zone, status, datetime.now()))
+
+    logger.info(f"✅ Created {len(bay_ids)} sample status records")
 
 def verify_data_import(cursor):
     """Verify and report data import results"""
