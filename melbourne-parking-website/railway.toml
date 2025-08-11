@@ -12,3 +12,6 @@ restartPolicyMaxRetries = 10
 PORT = "8000"
 FLASK_ENV = "production"
 PYTHONPATH = "/app/backend"
+
+[build.env]
+NIXPACKS_PYTHON_VERSION = "3.11"
