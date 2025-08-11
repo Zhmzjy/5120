@@ -9,7 +9,6 @@ services:
   - type: web
     name: melbourne-parking-backend
     env: python
-    pythonVersion: "3.11"
     repo: https://github.com/Zhmzjy/TE21-FIT5120.git
     rootDir: melbourne-parking-website/backend
     buildCommand: pip install -r requirements.txt
