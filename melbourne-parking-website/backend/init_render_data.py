@@ -237,15 +237,14 @@ def import_melbourne_population_data(cursor, csv_file):
     logger.info(f"🏙️ Importing Melbourne population data from {csv_file}")
 
     imported_count = 0
-    max_records = 50  # Limit records to prevent timeout
+    # Removed max_records limit - import all data
 
     try:
         with open(csv_file, 'r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
 
             for row in reader:
-                if imported_count >= max_records:
-                    break
+                # Removed max_records check - import all records
 
                 try:
                     cursor.execute('''
@@ -292,6 +291,10 @@ def import_melbourne_population_data(cursor, csv_file):
 
                     imported_count += 1
 
+                    # Log progress every 50 records instead of limiting
+                    if imported_count % 50 == 0:
+                        logger.info(f"   Imported {imported_count} Melbourne population records...")
+
                 except Exception as e:
                     logger.warning(f"Error importing Melbourne population data for {row.get('SA2 name', 'Unknown')}: {e}")
                     continue
@@ -308,15 +311,14 @@ def import_parking_bays_from_csv(cursor, csv_file):
     logger.info(f"🅿️ Importing parking bays from {csv_file}")
 
     imported_count = 0
-    max_records = 5000  # Limit to prevent Render timeout
+    # Removed max_records limit - import all parking bay data
 
     try:
         with open(csv_file, 'r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
 
             for row in reader:
-                if imported_count >= max_records:
-                    break
+                # Removed max_records check - import all records
 
                 try:
                     # Validate required fields
@@ -352,6 +354,7 @@ def import_parking_bays_from_csv(cursor, csv_file):
 
                     imported_count += 1
 
+                    # Progress logging every 1000 records
                     if imported_count % 1000 == 0:
                         logger.info(f"   Imported {imported_count} parking bays...")
 
@@ -359,7 +362,7 @@ def import_parking_bays_from_csv(cursor, csv_file):
                     logger.warning(f"Error importing parking bay {row.get('KerbsideID', 'Unknown')}: {e}")
                     continue
 
-        logger.info(f"✅ Imported {imported_count} parking bays")
+        logger.info(f"✅ Imported {imported_count} parking bays (all available data)")
 
     except Exception as e:
         logger.error(f"Failed to import parking bays: {e}")
@@ -375,15 +378,14 @@ def import_sensor_status_from_csv(cursor, csv_file):
     valid_ids = {row[0] for row in cursor.fetchall()}
 
     imported_count = 0
-    max_records = 3000  # Limit to prevent timeout
+    # Removed max_records limit - import all sensor status data
 
     try:
         with open(csv_file, 'r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
 
             for row in reader:
-                if imported_count >= max_records:
-                    break
+                # Removed max_records check - import all available sensor data
 
                 try:
                     # Validate required fields
@@ -422,14 +424,15 @@ def import_sensor_status_from_csv(cursor, csv_file):
 
                     imported_count += 1
 
-                    if imported_count % 500 == 0:
+                    # Progress logging every 1000 records
+                    if imported_count % 1000 == 0:
                         logger.info(f"   Imported {imported_count} sensor records...")
 
                 except Exception as e:
                     logger.warning(f"Error importing sensor data for {row.get('KerbsideID', 'Unknown')}: {e}")
                     continue
 
-        logger.info(f"✅ Imported {imported_count} sensor status records")
+        logger.info(f"✅ Imported {imported_count} sensor status records (all available data)")
 
     except Exception as e:
         logger.error(f"Failed to import sensor data: {e}")
