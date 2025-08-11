@@ -5,6 +5,28 @@ import math
 
 parking_routes = Blueprint('parking_routes', __name__)
 
+@parking_routes.route('/test', methods=['GET'])
+def test_api():
+    """Simple test endpoint to verify API is working"""
+    try:
+        # Test database connection and count records
+        bay_count = db.session.query(ParkingBay).count()
+        status_count = db.session.query(ParkingStatusCurrent).count()
+
+        return jsonify({
+            'status': 'API is working',
+            'database_connected': True,
+            'parking_bays_count': bay_count,
+            'parking_status_count': status_count,
+            'message': 'Backend is running successfully'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'API working but database error',
+            'database_connected': False,
+            'error': str(e)
+        }), 500
+
 @parking_routes.route('/current', methods=['GET'])
 def get_current_parking_status():
     """Get current parking bay status for map display with optional limits"""
@@ -49,18 +71,16 @@ def get_current_parking_status():
                 'zone_number': status.zone_number
             })
 
-        # Return just the array for frontend compatibility
-        return jsonify(results)
+        return jsonify({
+            'success': True,
+            'count': len(results),
+            'data': results
+        })
 
     except Exception as e:
-        # Add detailed error logging
-        print(f"ERROR in get_current_parking_status: {str(e)}")
-        import traceback
-        print(f"Traceback: {traceback.format_exc()}")
         return jsonify({
             'success': False,
-            'error': str(e),
-            'message': 'Database query failed - tables may be empty or not exist'
+            'error': str(e)
         }), 500
 
 @parking_routes.route('/nearby', methods=['GET'])
