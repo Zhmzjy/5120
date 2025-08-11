@@ -4,9 +4,6 @@ services:
     name: melbourne-parking-db
     env: docker
     plan: free
-    databases:
-      - name: melbourne_parking
-        user: postgres
 
   # Flask Backend API
   - type: web
