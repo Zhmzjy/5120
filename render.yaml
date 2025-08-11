@@ -13,7 +13,7 @@ services:
     rootDir: melbourne-parking-website/backend
     buildCommand: pip install -r requirements.txt
     startCommand: python run.py
-    plan: hobby
+    plan: pro
     envVars:
       - key: FLASK_ENV
         value: production
@@ -32,7 +32,7 @@ services:
     rootDir: melbourne-parking-website/frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    plan: hobby
+    plan: pro
     envVars:
       - key: VITE_API_URL
         fromService:
