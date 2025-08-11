@@ -27,7 +27,4 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: melbourne-parking-backend
-          property: host
+        value: "https://melbourne-parking-backend.onrender.com"
