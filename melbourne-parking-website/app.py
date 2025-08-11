@@ -7,7 +7,13 @@ from datetime import datetime, timedelta
 import os
 import sys
 
-# 设置页面配置
+# Prevent importing backend modules
+current_dir = os.path.dirname(os.path.abspath(__file__))
+backend_path = os.path.join(current_dir, 'backend')
+if backend_path in sys.path:
+    sys.path.remove(backend_path)
+
+# Set page configuration
 st.set_page_config(
     page_title="Melbourne Parking System",
     page_icon="🅿️",
@@ -15,7 +21,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 添加自定义CSS
+# Add custom CSS
 st.markdown("""
 <style>
     .main-header {
@@ -41,12 +47,12 @@ st.markdown("""
 
 @st.cache_data
 def load_sample_data():
-    """加载示例数据，模拟停车位数据"""
-    # 生成模拟数据
+    """Load sample data to simulate parking bay data"""
+    # Generate mock data
     np.random.seed(42)
     n_bays = 5000
 
-    # 创建停车位数据
+    # Create parking bay data
     parking_data = {
         'kerbside_id': [f'BAY_{i:04d}' for i in range(n_bays)],
         'latitude': np.random.uniform(-37.850, -37.800, n_bays),
@@ -63,16 +69,16 @@ def load_sample_data():
 
 @st.cache_data
 def generate_time_series_data():
-    """生成时间序列数据用于图表展示"""
+    """Generate time series data for chart display"""
     dates = pd.date_range(start='2024-01-01', end='2024-12-31', freq='D')
 
-    # 模拟每日占用率数据
+    # Simulate daily occupancy rate data
     occupancy_rates = []
     for i, date in enumerate(dates):
-        # 模拟季节性和周期性变化
+        # Simulate seasonal and periodic changes
         base_rate = 0.65
-        seasonal = 0.1 * np.sin(2 * np.pi * i / 365)  # 年度季节性
-        weekly = 0.15 * np.sin(2 * np.pi * (i % 7) / 7)  # 周循环
+        seasonal = 0.1 * np.sin(2 * np.pi * i / 365)  # Annual seasonality
+        weekly = 0.15 * np.sin(2 * np.pi * (i % 7) / 7)  # Weekly cycle
         noise = np.random.normal(0, 0.05)
         rate = np.clip(base_rate + seasonal + weekly + noise, 0.2, 0.95)
         occupancy_rates.append(rate)
@@ -85,7 +91,7 @@ def generate_time_series_data():
     })
 
 def main():
-    # 主标题
+    # Main title
     st.markdown("""
     <div class="main-header">
         <h1>🅿️ Melbourne Parking System</h1>
@@ -93,42 +99,42 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
-    # 加载数据
+    # Load data
     parking_df = load_sample_data()
     time_series_df = generate_time_series_data()
 
-    # 边栏
+    # Sidebar
     st.sidebar.header("📊 Dashboard Controls")
 
-    # 日期选择器
+    # Date picker
     selected_date = st.sidebar.date_input(
-        "选择日期",
+        "Select Date",
         value=datetime.now().date(),
         min_value=datetime(2024, 1, 1).date(),
         max_value=datetime.now().date()
     )
 
-    # 区域选择
+    # Zone selection
     selected_zones = st.sidebar.multiselect(
-        "选择停车区域类型",
+        "Select Parking Zone Types",
         options=['1P', '2P', '4P', 'Unrestricted'],
         default=['1P', '2P', '4P', 'Unrestricted']
     )
 
-    # 街道选择
+    # Street selection
     selected_streets = st.sidebar.multiselect(
-        "选择街道",
+        "Select Streets",
         options=parking_df['street_name'].unique(),
         default=parking_df['street_name'].unique()[:3]
     )
 
-    # 筛选数据
+    # Filter data
     filtered_df = parking_df[
         (parking_df['zone_number'].isin(selected_zones)) &
         (parking_df['street_name'].isin(selected_streets))
     ]
 
-    # 主要指标
+    # Main metrics
     col1, col2, col3, col4 = st.columns(4)
 
     total_bays = len(filtered_df)
@@ -139,46 +145,46 @@ def main():
 
     with col1:
         st.metric(
-            label="🅿️ 总停车位",
+            label="🅿️ Total Parking Bays",
             value=f"{total_bays:,}",
             delta=None
         )
 
     with col2:
         st.metric(
-            label="✅ 可用停车位",
+            label="✅ Available Spaces",
             value=f"{available:,}",
             delta=f"{available/total_bays*100:.1f}%" if total_bays > 0 else "0%"
         )
 
     with col3:
         st.metric(
-            label="🚗 占用停车位",
+            label="🚗 Occupied Spaces",
             value=f"{occupied:,}",
             delta=f"{occupancy_rate:.1f}%" if total_bays > 0 else "0%"
         )
 
     with col4:
         st.metric(
-            label="⚠️ 停用停车位",
+            label="⚠️ Out of Service",
             value=f"{out_of_service:,}",
             delta=f"{out_of_service/total_bays*100:.1f}%" if total_bays > 0 else "0%"
         )
 
-    # 图表区域
+    # Charts section
     st.markdown("---")
 
-    # 第一行图表
+    # First row of charts
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("📈 历史占用率趋势")
+        st.subheader("📈 Historical Occupancy Trend")
         fig_line = px.line(
             time_series_df,
             x='date',
             y='occupancy_rate',
-            title="停车位占用率变化趋势",
-            labels={'occupancy_rate': '占用率', 'date': '日期'}
+            title="Parking Occupancy Rate Trend",
+            labels={'occupancy_rate': 'Occupancy Rate', 'date': 'Date'}
         )
         fig_line.update_traces(line_color='#3498db')
         fig_line.update_layout(
@@ -188,14 +194,14 @@ def main():
         st.plotly_chart(fig_line, use_container_width=True)
 
     with col2:
-        st.subheader("🍕 当前停车状态分布")
+        st.subheader("🍕 Current Parking Status Distribution")
         status_counts = filtered_df['status'].value_counts()
         colors = ['#e74c3c', '#27ae60', '#f39c12']
 
         fig_pie = px.pie(
             values=status_counts.values,
             names=status_counts.index,
-            title="停车位状态分布",
+            title="Parking Status Distribution",
             color_discrete_sequence=colors
         )
         fig_pie.update_layout(
@@ -204,18 +210,18 @@ def main():
         )
         st.plotly_chart(fig_pie, use_container_width=True)
 
-    # 第二行图表
+    # Second row of charts
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("🏢 各街道停车位分布")
+        st.subheader("🏢 Parking Distribution by Street")
         street_counts = filtered_df.groupby('street_name').size().reset_index(name='count')
         fig_bar = px.bar(
             street_counts,
             x='street_name',
             y='count',
-            title="各街道停车位数量",
-            labels={'count': '停车位数量', 'street_name': '街道名称'},
+            title="Number of Parking Bays per Street",
+            labels={'count': 'Number of Parking Bays', 'street_name': 'Street Name'},
             color='count',
             color_continuous_scale='Blues'
         )
@@ -227,13 +233,13 @@ def main():
         st.plotly_chart(fig_bar, use_container_width=True)
 
     with col2:
-        st.subheader("⏰ 停车区域类型分布")
+        st.subheader("⏰ Parking Zone Type Distribution")
         zone_counts = filtered_df['zone_number'].value_counts()
         fig_bar2 = px.bar(
             x=zone_counts.index,
             y=zone_counts.values,
-            title="停车时长限制分布",
-            labels={'x': '停车区域类型', 'y': '停车位数量'},
+            title="Parking Time Limit Distribution",
+            labels={'x': 'Parking Zone Type', 'y': 'Number of Parking Bays'},
             color=zone_counts.values,
             color_continuous_scale='Viridis'
         )
@@ -243,14 +249,14 @@ def main():
         )
         st.plotly_chart(fig_bar2, use_container_width=True)
 
-    # 地图展示
+    # Map display
     st.markdown("---")
-    st.subheader("🗺️ 停车位地图分布")
+    st.subheader("🗺️ Parking Bay Map Distribution")
 
-    # 创建地图数据
-    map_data = filtered_df.sample(min(500, len(filtered_df)))  # 最多显示500个点，避免地图过于拥挤
+    # Create map data
+    map_data = filtered_df.sample(min(500, len(filtered_df)))  # Display max 500 points to avoid map congestion
 
-    # 添加颜色映射
+    # Add color mapping
     color_map = {'Occupied': '#e74c3c', 'Unoccupied': '#27ae60', 'Out of Service': '#f39c12'}
     map_data['color'] = map_data['status'].map(color_map)
 
@@ -261,7 +267,7 @@ def main():
         color="status",
         size_max=10,
         zoom=13,
-        title="Melbourne CBD 停车位分布",
+        title="Melbourne CBD Parking Bay Distribution",
         color_discrete_map=color_map,
         hover_data={'street_name': True, 'zone_number': True}
     )
@@ -274,12 +280,12 @@ def main():
 
     st.plotly_chart(fig_map, use_container_width=True)
 
-    # 数据表格
+    # Data table
     st.markdown("---")
-    st.subheader("📋 详细数据")
+    st.subheader("📋 Detailed Data")
 
-    # 添加搜索功能
-    search_term = st.text_input("🔍 搜索停车位 (输入街道名或停车位ID)")
+    # Add search functionality
+    search_term = st.text_input("🔍 Search Parking Bays (enter street name or parking bay ID)")
 
     if search_term:
         display_df = filtered_df[
@@ -287,22 +293,22 @@ def main():
             (filtered_df['kerbside_id'].str.contains(search_term, case=False))
         ]
     else:
-        display_df = filtered_df.head(100)  # 只显示前100条记录
+        display_df = filtered_df.head(100)  # Display only first 100 records
 
     st.dataframe(
         display_df,
         use_container_width=True,
         column_config={
-            "kerbside_id": "停车位ID",
-            "latitude": "纬度",
-            "longitude": "经度",
-            "status": "状态",
-            "zone_number": "区域类型",
-            "street_name": "街道名称"
+            "kerbside_id": "Parking Bay ID",
+            "latitude": "Latitude",
+            "longitude": "Longitude",
+            "status": "Status",
+            "zone_number": "Zone Type",
+            "street_name": "Street Name"
         }
     )
 
-    # 页脚
+    # Footer
     st.markdown("---")
     st.markdown("""
     <div style='text-align: center; color: #666; padding: 2rem;'>
