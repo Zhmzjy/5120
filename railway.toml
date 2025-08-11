@@ -2,7 +2,7 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "cd backend && python run.py"
+startCommand = "cd melbourne-parking-website/backend && python run.py"
 healthcheckPath = "/api/parking/status"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
@@ -11,7 +11,7 @@ restartPolicyMaxRetries = 10
 [variables]
 PORT = "8000"
 FLASK_ENV = "production"
-PYTHONPATH = "/app/backend"
+PYTHONPATH = "/app/melbourne-parking-website/backend"
 
 [build.env]
 NIXPACKS_PYTHON_VERSION = "3.11"
