@@ -36,8 +36,26 @@ class RailwayDataImporter:
         # Parse Railway DATABASE_URL format: postgresql://user:pass@host:port/dbname
         self.db_config = self._parse_database_url(self.database_url)
 
-        # Set CSV path - in Railway environment, files are in project root
-        self.csv_path = "/app"
+        # Set CSV path - try multiple possible locations
+        possible_paths = [
+            "/app",  # Railway deployment path
+            "/app/melbourne-parking-website",  # If deployed from subdirectory
+            ".",     # Current directory
+            ".."     # Parent directory
+        ]
+
+        self.csv_path = None
+        for path in possible_paths:
+            test_file = os.path.join(path, "on-street-parking-bays.csv")
+            if os.path.exists(test_file):
+                self.csv_path = path
+                break
+
+        if not self.csv_path:
+            # Default to /app and let individual methods handle file not found
+            self.csv_path = "/app"
+
+        logger.info(f"Using CSV path: {self.csv_path}")
 
     def _parse_database_url(self, url):
         """Parse PostgreSQL URL into connection parameters"""
