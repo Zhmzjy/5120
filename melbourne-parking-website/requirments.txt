@@ -1,0 +1,7 @@
+streamlit
+flask==2.3.3
+flask-cors
+requests
+pandas
+numpy
+pydeck
