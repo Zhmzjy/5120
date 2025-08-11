@@ -87,11 +87,10 @@ def get_current_parking_status():
 def get_streets_list():
     """Get list of streets with parking statistics"""
     try:
-        # Get streets with total bay counts
+        # Get streets with total bay counts and available bay counts separately
         streets_data = db.session.query(
             ParkingBay.road_segment_description,
-            func.count(ParkingBay.kerbside_id).label('total_bays'),
-            func.count(func.nullif(ParkingStatusCurrent.status_description, 'Occupied')).label('available_bays')
+            func.count(ParkingBay.kerbside_id).label('total_bays')
         ).join(
             ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
         ).filter(
@@ -103,13 +102,26 @@ def get_streets_list():
         ).limit(50).all()
 
         results = []
-        for street_name, total_bays, available_bays in streets_data:
-            occupancy_rate = round(((total_bays - available_bays) / total_bays * 100), 1) if total_bays > 0 else 0
+        for street_name, total_bays in streets_data:
+            # Get available bays count for this specific street
+            available_count = db.session.query(
+                func.count(ParkingBay.kerbside_id)
+            ).join(
+                ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
+            ).filter(
+                ParkingBay.road_segment_description == street_name,
+                ParkingStatusCurrent.status_description == 'Unoccupied'
+            ).scalar() or 0
+
+            # Calculate occupancy rate
+            occupied_bays = total_bays - available_count
+            occupancy_rate = round((occupied_bays / total_bays * 100), 1) if total_bays > 0 else 0
 
             results.append({
                 'street_name': street_name,
                 'total_bays': total_bays,
-                'available_bays': available_bays or 0,
+                'available_bays': available_count,
+                'occupied_bays': occupied_bays,
                 'occupancy_rate': occupancy_rate
             })
 
