@@ -56,7 +56,7 @@ def get_current_parking_status():
 
         # Optimize limit for better performance vs coverage balance
         if limit is None:
-            limit = 1500  # Reduced from 2500 for better performance
+            limit = 2000  # Reduced from 2500 for better performance
 
         parking_bays = query.limit(limit).all()
 
