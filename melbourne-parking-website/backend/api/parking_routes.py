@@ -35,13 +35,17 @@ def get_current_parking_status():
         limit = request.args.get('limit', type=int)
         bounds = request.args.get('bounds')  # Format: "lat1,lng1,lat2,lng2"
 
-        # Use a different approach for balanced distribution across streets
+        # Configuration: maintain total bays around 1500, but show 25 per street
         if limit is None:
             limit = 1500
 
-        # First, get all unique streets
+        bays_per_street = 25  # Each street shows 25 parking spots
+        target_streets = limit // bays_per_street  # Calculate how many streets to show
+
+        # First, get top streets by parking bay count
         streets_query = db.session.query(
-            ParkingBay.road_segment_description
+            ParkingBay.road_segment_description,
+            func.count(ParkingBay.kerbside_id).label('bay_count')
         ).join(
             ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
         ).filter(
@@ -59,26 +63,18 @@ def get_current_parking_status():
             except (ValueError, TypeError):
                 pass
 
-        unique_streets = streets_query.distinct().all()
-        street_names = [street[0] for street in unique_streets]
-
-        # Calculate how many parking bays per street for balanced distribution
-        if len(street_names) > 0:
-            bays_per_street = max(2, limit // len(street_names))  # At least 2 bays per street
-            remaining_limit = limit
-        else:
-            bays_per_street = limit
-            remaining_limit = limit
+        # Get top streets by parking bay count (limit based on total bays / bays_per_street)
+        top_streets = streets_query.group_by(
+            ParkingBay.road_segment_description
+        ).order_by(
+            func.count(ParkingBay.kerbside_id).desc()
+        ).limit(target_streets).all()
 
         results = []
 
-        # Get balanced data from each street
-        for street_name in street_names:
-            if remaining_limit <= 0:
-                break
-
-            # Get limited number of bays from this street
-            current_street_limit = min(bays_per_street, remaining_limit)
+        # Get exactly 25 bays from each street
+        for street_data in top_streets:
+            street_name = street_data[0]
 
             street_query = db.session.query(
                 ParkingBay,
@@ -100,7 +96,8 @@ def get_current_parking_status():
                 except (ValueError, TypeError):
                     pass
 
-            street_bays = street_query.limit(current_street_limit).all()
+            # Get exactly 25 bays from this street
+            street_bays = street_query.limit(bays_per_street).all()
 
             # Add street bays to results
             for bay, status in street_bays:
@@ -112,15 +109,15 @@ def get_current_parking_status():
                     'road_segment': bay.road_segment_description,
                     'zone_number': status.zone_number
                 })
-                remaining_limit -= 1
 
         return jsonify({
             'success': True,
             'count': len(results),
             'data': results,
             'distribution_info': {
-                'total_streets': len(street_names),
-                'target_bays_per_street': bays_per_street,
+                'total_streets': len(top_streets),
+                'bays_per_street': bays_per_street,
+                'target_streets': target_streets,
                 'actual_bays_returned': len(results)
             }
         })
