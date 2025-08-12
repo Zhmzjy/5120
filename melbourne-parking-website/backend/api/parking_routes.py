@@ -29,17 +29,17 @@ def test_api():
 
 @parking_routes.route('/current', methods=['GET'])
 def get_current_parking_status():
-    """Get current parking bay status for map display - unified with statistics logic"""
+    """Get current parking bay status for map display with optional limits"""
     try:
         # Get optional query parameters
         limit = request.args.get('limit', type=int)
         bounds = request.args.get('bounds')  # Format: "lat1,lng1,lat2,lng2"
 
-        # Base query - use same logic as street statistics (INNER JOIN)
+        # Use LEFT JOIN to ensure we get parking bays even without status data
         query = db.session.query(
             ParkingBay,
             ParkingStatusCurrent
-        ).join(
+        ).outerjoin(
             ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
         )
 
@@ -54,34 +54,44 @@ def get_current_parking_status():
             except (ValueError, TypeError):
                 pass  # Ignore invalid bounds format
 
-        # Remove default limit to match statistics logic - only apply if explicitly requested
-        if limit and limit > 0:
-            parking_bays = query.limit(limit).all()
-        else:
-            # No limit - show all parking bays with status data to match statistics
-            parking_bays = query.all()
+        # Apply limit with safe default
+        if limit is None:
+            limit = 3000  # Reasonable default that should cover most cases
+
+        parking_bays = query.limit(limit).all()
 
         results = []
         for bay, status in parking_bays:
+            # Handle cases where status might be None
+            status_description = status.status_description if status else 'Unknown'
+            zone_number = status.zone_number if status else None
+
             results.append({
                 'kerbside_id': bay.kerbside_id,
                 'latitude': float(bay.latitude),
                 'longitude': float(bay.longitude),
-                'status': status.status_description,
+                'status': status_description,
                 'road_segment': bay.road_segment_description,
-                'zone_number': status.zone_number
+                'zone_number': zone_number
             })
 
         return jsonify({
             'success': True,
             'count': len(results),
-            'data': results
+            'data': results,
+            'debug_info': {
+                'query_limit': limit,
+                'has_bounds_filter': bounds is not None
+            }
         })
 
     except Exception as e:
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': str(e),
+            'debug_info': {
+                'error_type': type(e).__name__
+            }
         }), 500
 
 @parking_routes.route('/streets', methods=['GET'])
