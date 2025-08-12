@@ -338,7 +338,7 @@ def import_melbourne_population_data(cursor, csv_file):
         create_sample_melbourne_data(cursor)
 
 def import_parking_bays_from_csv(cursor, csv_file):
-    """Import parking bays data from CSV file - Import ALL rows without skipping any"""
+    """Import parking bays data from CSV file - Only import records with valid KerbsideID"""
 
     logger.info(f"🅿️ Importing parking bays from {csv_file}")
 
@@ -351,11 +351,11 @@ def import_parking_bays_from_csv(cursor, csv_file):
 
             for row_index, row in enumerate(reader):
                 try:
-                    # Get KerbsideID with fallback to generated ID
+                    # Only import records with valid KerbsideID - RESTORE ORIGINAL LIMIT
                     kerbside_id = _safe_int(row.get('KerbsideID'))
                     if kerbside_id is None:
-                        kerbside_id = _generate_default_id(row_index)
-                        logger.info(f"Generated ID {kerbside_id} for row {row_index + 1}")
+                        skipped_count += 1
+                        continue  # Skip records without valid KerbsideID
 
                     # Get coordinates with fallback to Melbourne CBD center
                     latitude = _safe_float(row.get('Latitude'))
@@ -372,7 +372,7 @@ def import_parking_bays_from_csv(cursor, csv_file):
                     road_segment_description = _safe_string(row.get('RoadSegmentDescription'), 'Unknown Street')
                     location_string = _safe_string(row.get('Location'), 'Melbourne CBD')
 
-                    # Insert parking bay record - NO SKIPPING
+                    # Insert parking bay record - only with valid KerbsideID
                     cursor.execute('''
                         INSERT OR REPLACE INTO parking_bays 
                         (kerbside_id, road_segment_id, road_segment_description, 
@@ -394,11 +394,11 @@ def import_parking_bays_from_csv(cursor, csv_file):
                         logger.info(f"   Imported {imported_count} parking bays...")
 
                 except Exception as e:
-                    # Still log errors but try to continue with default values
+                    # Log errors but continue processing
                     logger.warning(f"Error importing parking bay row {row_index + 1}: {e}")
                     skipped_count += 1
 
-        logger.info(f"✅ Imported {imported_count} parking bays, skipped {skipped_count} due to critical errors")
+        logger.info(f"✅ Imported {imported_count} parking bays with valid KerbsideID, skipped {skipped_count} records without valid ID")
 
     except Exception as e:
         logger.error(f"Failed to import parking bays: {e}")
