@@ -29,52 +29,100 @@ def test_api():
 
 @parking_routes.route('/current', methods=['GET'])
 def get_current_parking_status():
-    """Get current parking bay status for map display with optional limits"""
+    """Get current parking bay status for map display with balanced street distribution"""
     try:
         # Get optional query parameters
         limit = request.args.get('limit', type=int)
         bounds = request.args.get('bounds')  # Format: "lat1,lng1,lat2,lng2"
 
-        # Revert to INNER JOIN but with better error handling
-        query = db.session.query(
-            ParkingBay,
-            ParkingStatusCurrent
+        # Use a different approach for balanced distribution across streets
+        if limit is None:
+            limit = 1500
+
+        # First, get all unique streets
+        streets_query = db.session.query(
+            ParkingBay.road_segment_description
         ).join(
             ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
+        ).filter(
+            ParkingBay.road_segment_description.isnot(None)
         )
 
-        # Apply geographic bounds filter if provided
+        # Apply geographic bounds filter to streets if provided
         if bounds:
             try:
                 lat1, lng1, lat2, lng2 = map(float, bounds.split(','))
-                query = query.filter(
+                streets_query = streets_query.filter(
                     ParkingBay.latitude.between(min(lat1, lat2), max(lat1, lat2)),
                     ParkingBay.longitude.between(min(lng1, lng2), max(lng1, lng2))
                 )
             except (ValueError, TypeError):
-                pass  # Ignore invalid bounds format
+                pass
 
-        # Optimize limit for better performance vs coverage balance
-        if limit is None:
-            limit = 2000  # Reduced from 2500 for better performance
+        unique_streets = streets_query.distinct().all()
+        street_names = [street[0] for street in unique_streets]
 
-        parking_bays = query.limit(limit).all()
+        # Calculate how many parking bays per street for balanced distribution
+        if len(street_names) > 0:
+            bays_per_street = max(2, limit // len(street_names))  # At least 2 bays per street
+            remaining_limit = limit
+        else:
+            bays_per_street = limit
+            remaining_limit = limit
 
         results = []
-        for bay, status in parking_bays:
-            results.append({
-                'kerbside_id': bay.kerbside_id,
-                'latitude': float(bay.latitude),
-                'longitude': float(bay.longitude),
-                'status': status.status_description,
-                'road_segment': bay.road_segment_description,
-                'zone_number': status.zone_number
-            })
+
+        # Get balanced data from each street
+        for street_name in street_names:
+            if remaining_limit <= 0:
+                break
+
+            # Get limited number of bays from this street
+            current_street_limit = min(bays_per_street, remaining_limit)
+
+            street_query = db.session.query(
+                ParkingBay,
+                ParkingStatusCurrent
+            ).join(
+                ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
+            ).filter(
+                ParkingBay.road_segment_description == street_name
+            )
+
+            # Apply geographic bounds filter if provided
+            if bounds:
+                try:
+                    lat1, lng1, lat2, lng2 = map(float, bounds.split(','))
+                    street_query = street_query.filter(
+                        ParkingBay.latitude.between(min(lat1, lat2), max(lat1, lat2)),
+                        ParkingBay.longitude.between(min(lng1, lng2), max(lng1, lng2))
+                    )
+                except (ValueError, TypeError):
+                    pass
+
+            street_bays = street_query.limit(current_street_limit).all()
+
+            # Add street bays to results
+            for bay, status in street_bays:
+                results.append({
+                    'kerbside_id': bay.kerbside_id,
+                    'latitude': float(bay.latitude),
+                    'longitude': float(bay.longitude),
+                    'status': status.status_description,
+                    'road_segment': bay.road_segment_description,
+                    'zone_number': status.zone_number
+                })
+                remaining_limit -= 1
 
         return jsonify({
             'success': True,
             'count': len(results),
-            'data': results
+            'data': results,
+            'distribution_info': {
+                'total_streets': len(street_names),
+                'target_bays_per_street': bays_per_street,
+                'actual_bays_returned': len(results)
+            }
         })
 
     except Exception as e:
