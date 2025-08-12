@@ -6,25 +6,32 @@ statistics_routes = Blueprint('statistics_routes', __name__)
 
 @statistics_routes.route('/overview', methods=['GET'])
 def get_parking_overview():
-    """Get overall parking statistics for dashboard"""
+    """Get overall parking statistics for dashboard - unified with map logic"""
     try:
-        # Get total counts
-        total_bays = db.session.query(func.count(ParkingBay.kerbside_id)).scalar()
+        # Use same INNER JOIN logic as map and street statistics
+        # Get total counts from joined data (only parking bays with status data)
+        total_bays = db.session.query(
+            func.count(ParkingBay.kerbside_id)
+        ).join(
+            ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
+        ).scalar()
 
-        # Get status breakdown
-        status_counts = db.session.query(
-            ParkingStatusCurrent.status_description,
-            func.count(ParkingStatusCurrent.kerbside_id)
-        ).group_by(ParkingStatusCurrent.status_description).all()
+        # Get status breakdown using same joined query
+        occupied_count = db.session.query(
+            func.count(ParkingBay.kerbside_id)
+        ).join(
+            ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
+        ).filter(
+            ParkingStatusCurrent.status_description == 'Present'
+        ).scalar() or 0
 
-        occupied_count = 0
-        available_count = 0
-
-        for status, count in status_counts:
-            if status == 'Present':
-                occupied_count = count
-            elif status == 'Unoccupied':
-                available_count = count
+        available_count = db.session.query(
+            func.count(ParkingBay.kerbside_id)
+        ).join(
+            ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
+        ).filter(
+            ParkingStatusCurrent.status_description == 'Unoccupied'
+        ).scalar() or 0
 
         occupancy_rate = round((occupied_count / total_bays * 100), 1) if total_bays > 0 else 0
 

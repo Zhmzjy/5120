@@ -29,13 +29,13 @@ def test_api():
 
 @parking_routes.route('/current', methods=['GET'])
 def get_current_parking_status():
-    """Get current parking bay status for map display with optional limits"""
+    """Get current parking bay status for map display - unified with statistics logic"""
     try:
         # Get optional query parameters
         limit = request.args.get('limit', type=int)
         bounds = request.args.get('bounds')  # Format: "lat1,lng1,lat2,lng2"
 
-        # Base query
+        # Base query - use same logic as street statistics (INNER JOIN)
         query = db.session.query(
             ParkingBay,
             ParkingStatusCurrent
@@ -54,11 +54,12 @@ def get_current_parking_status():
             except (ValueError, TypeError):
                 pass  # Ignore invalid bounds format
 
-        # Apply limit if specified (default to 1000 for performance)
-        if limit is None:
-            limit = 1000
-
-        parking_bays = query.limit(limit).all()
+        # Remove default limit to match statistics logic - only apply if explicitly requested
+        if limit and limit > 0:
+            parking_bays = query.limit(limit).all()
+        else:
+            # No limit - show all parking bays with status data to match statistics
+            parking_bays = query.all()
 
         results = []
         for bay, status in parking_bays:
