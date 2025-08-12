@@ -56,7 +56,7 @@ def get_current_parking_status():
 
         # Gradually increase limit from 1000 to 2000 (Phase 1)
         if limit is None:
-            limit = 2000  # Increased from 1000 to 2000
+            limit = 3000  # Increased from 1000 to 2000
 
         parking_bays = query.limit(limit).all()
 
