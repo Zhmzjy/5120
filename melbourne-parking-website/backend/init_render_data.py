@@ -19,6 +19,30 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def _safe_int(value, default=None):
+    """Safely convert value to integer with default fallback"""
+    if value is None or str(value).strip() == '' or str(value).lower() == 'nan':
+        return default
+    try:
+        return int(float(str(value)))  # Handle decimal strings
+    except (ValueError, TypeError):
+        return default
+
+def _safe_float(value, default=None):
+    """Safely convert value to float with default fallback"""
+    if value is None or str(value).strip() == '' or str(value).lower() == 'nan':
+        return default
+    try:
+        return float(str(value))
+    except (ValueError, TypeError):
+        return default
+
+def _safe_string(value, default=''):
+    """Safely convert value to string with default fallback"""
+    if value is None:
+        return default
+    return str(value).strip()
+
 def init_render_database():
     """Initialize SQLite database with essential data for Render deployment"""
 
@@ -206,10 +230,10 @@ def import_victoria_population_data(cursor, csv_file):
                             growth_rate = None
 
                             if num_idx < len(row) and row[num_idx]:
-                                pop_increase = int(str(row[num_idx]).replace(',', ''))
+                                pop_increase = _safe_int(row[num_idx])
 
                             if rate_idx < len(row) and row[rate_idx]:
-                                growth_rate = float(row[rate_idx])
+                                growth_rate = _safe_float(row[rate_idx])
 
                             cursor.execute('''
                                 INSERT OR REPLACE INTO victoria_population_growth 
@@ -325,15 +349,15 @@ def import_parking_bays_from_csv(cursor, csv_file):
                     if not all([row.get('KerbsideID'), row.get('Latitude'), row.get('Longitude')]):
                         continue
 
-                    kerbside_id = int(row['KerbsideID'])
-                    latitude = float(row['Latitude'])
-                    longitude = float(row['Longitude'])
+                    kerbside_id = _safe_int(row['KerbsideID'])
+                    latitude = _safe_float(row['Latitude'])
+                    longitude = _safe_float(row['Longitude'])
 
                     # Parse optional fields
                     road_segment_id = None
                     if row.get('RoadSegmentID') and row['RoadSegmentID'].strip():
                         try:
-                            road_segment_id = int(row['RoadSegmentID'])
+                            road_segment_id = _safe_int(row['RoadSegmentID'])
                         except:
                             pass
 
@@ -392,7 +416,7 @@ def import_sensor_status_from_csv(cursor, csv_file):
                     if not all([row.get('KerbsideID'), row.get('Status_Description')]):
                         continue
 
-                    kerbside_id = int(row['KerbsideID'])
+                    kerbside_id = _safe_int(row['KerbsideID'])
 
                     # Only import if parking bay exists
                     if kerbside_id not in valid_ids:
@@ -404,7 +428,7 @@ def import_sensor_status_from_csv(cursor, csv_file):
                     zone_number = None
                     if row.get('Zone_Number') and row['Zone_Number'].strip():
                         try:
-                            zone_number = int(row['Zone_Number'])
+                            zone_number = _safe_int(row['Zone_Number'])
                         except:
                             pass
 
@@ -437,24 +461,6 @@ def import_sensor_status_from_csv(cursor, csv_file):
     except Exception as e:
         logger.error(f"Failed to import sensor data: {e}")
         create_sample_status_data(cursor)
-
-def _safe_int(value):
-    """Safely convert value to integer"""
-    if value is None or value == '' or value == 'nan':
-        return None
-    try:
-        return int(float(str(value).replace(',', '')))
-    except:
-        return None
-
-def _safe_float(value):
-    """Safely convert value to float"""
-    if value is None or value == '' or value == 'nan':
-        return None
-    try:
-        return float(str(value).replace(',', ''))
-    except:
-        return None
 
 def create_sample_victoria_data(cursor):
     """Create sample Victoria population growth data"""
