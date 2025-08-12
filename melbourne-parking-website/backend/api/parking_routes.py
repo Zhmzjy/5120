@@ -54,9 +54,9 @@ def get_current_parking_status():
             except (ValueError, TypeError):
                 pass  # Ignore invalid bounds format
 
-        # Apply limit if specified (default to 1000 for performance)
+        # Apply limit if specified (default to 10000 for better coverage while maintaining performance)
         if limit is None:
-            limit = 1000
+            limit = 10000
 
         parking_bays = query.limit(limit).all()
 
