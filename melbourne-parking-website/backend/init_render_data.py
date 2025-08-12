@@ -43,6 +43,14 @@ def _safe_string(value, default=''):
         return default
     return str(value).strip()
 
+def _generate_default_id(row_index):
+    """Generate a default ID for records without KerbsideID"""
+    return 9000000 + row_index  # Start from 9000000 to avoid conflicts
+
+def _get_default_coordinates():
+    """Get default coordinates for Melbourne CBD center"""
+    return -37.8136, 144.9631  # Melbourne CBD center
+
 def init_render_database():
     """Initialize SQLite database with essential data for Render deployment"""
 
@@ -330,38 +338,41 @@ def import_melbourne_population_data(cursor, csv_file):
         create_sample_melbourne_data(cursor)
 
 def import_parking_bays_from_csv(cursor, csv_file):
-    """Import parking bays data from CSV file"""
+    """Import parking bays data from CSV file - Import ALL rows without skipping any"""
 
     logger.info(f"🅿️ Importing parking bays from {csv_file}")
 
     imported_count = 0
-    # Removed max_records limit - import all parking bay data
+    skipped_count = 0
 
     try:
         with open(csv_file, 'r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
 
-            for row in reader:
-                # Removed max_records check - import all records
-
+            for row_index, row in enumerate(reader):
                 try:
-                    # Validate required fields
-                    if not all([row.get('KerbsideID'), row.get('Latitude'), row.get('Longitude')]):
-                        continue
+                    # Get KerbsideID with fallback to generated ID
+                    kerbside_id = _safe_int(row.get('KerbsideID'))
+                    if kerbside_id is None:
+                        kerbside_id = _generate_default_id(row_index)
+                        logger.info(f"Generated ID {kerbside_id} for row {row_index + 1}")
 
-                    kerbside_id = _safe_int(row['KerbsideID'])
-                    latitude = _safe_float(row['Latitude'])
-                    longitude = _safe_float(row['Longitude'])
+                    # Get coordinates with fallback to Melbourne CBD center
+                    latitude = _safe_float(row.get('Latitude'))
+                    longitude = _safe_float(row.get('Longitude'))
 
-                    # Parse optional fields
-                    road_segment_id = None
-                    if row.get('RoadSegmentID') and row['RoadSegmentID'].strip():
-                        try:
-                            road_segment_id = _safe_int(row['RoadSegmentID'])
-                        except:
-                            pass
+                    if latitude is None or longitude is None:
+                        default_lat, default_lng = _get_default_coordinates()
+                        latitude = latitude or default_lat
+                        longitude = longitude or default_lng
+                        logger.info(f"Using default coordinates for KerbsideID {kerbside_id}")
 
-                    # Insert parking bay record
+                    # Parse optional fields with safe conversion
+                    road_segment_id = _safe_int(row.get('RoadSegmentID'))
+                    road_segment_description = _safe_string(row.get('RoadSegmentDescription'), 'Unknown Street')
+                    location_string = _safe_string(row.get('Location'), 'Melbourne CBD')
+
+                    # Insert parking bay record - NO SKIPPING
                     cursor.execute('''
                         INSERT OR REPLACE INTO parking_bays 
                         (kerbside_id, road_segment_id, road_segment_description, 
@@ -370,10 +381,10 @@ def import_parking_bays_from_csv(cursor, csv_file):
                     ''', (
                         kerbside_id,
                         road_segment_id,
-                        row.get('RoadSegmentDescription', '').strip() or None,
+                        road_segment_description,
                         latitude,
                         longitude,
-                        row.get('Location', '').strip() or None
+                        location_string
                     ))
 
                     imported_count += 1
@@ -383,17 +394,18 @@ def import_parking_bays_from_csv(cursor, csv_file):
                         logger.info(f"   Imported {imported_count} parking bays...")
 
                 except Exception as e:
-                    logger.warning(f"Error importing parking bay {row.get('KerbsideID', 'Unknown')}: {e}")
-                    continue
+                    # Still log errors but try to continue with default values
+                    logger.warning(f"Error importing parking bay row {row_index + 1}: {e}")
+                    skipped_count += 1
 
-        logger.info(f"✅ Imported {imported_count} parking bays (all available data)")
+        logger.info(f"✅ Imported {imported_count} parking bays, skipped {skipped_count} due to critical errors")
 
     except Exception as e:
         logger.error(f"Failed to import parking bays: {e}")
         create_sample_parking_bays(cursor)
 
 def import_sensor_status_from_csv(cursor, csv_file):
-    """Import sensor status data from CSV file"""
+    """Import sensor status data from CSV file - Import ALL rows without strict validation"""
 
     logger.info(f"📡 Importing sensor status from {csv_file}")
 
@@ -402,37 +414,39 @@ def import_sensor_status_from_csv(cursor, csv_file):
     valid_ids = {row[0] for row in cursor.fetchall()}
 
     imported_count = 0
-    # Removed max_records limit - import all sensor status data
+    skipped_count = 0
 
     try:
         with open(csv_file, 'r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
 
-            for row in reader:
-                # Removed max_records check - import all available sensor data
-
+            for row_index, row in enumerate(reader):
                 try:
-                    # Validate required fields
-                    if not all([row.get('KerbsideID'), row.get('Status_Description')]):
+                    # Get KerbsideID with safe conversion
+                    kerbside_id = _safe_int(row.get('KerbsideID'))
+
+                    # Skip only if KerbsideID is completely invalid
+                    if kerbside_id is None:
+                        logger.warning(f"Row {row_index + 1}: Invalid KerbsideID '{row.get('KerbsideID')}', skipping")
+                        skipped_count += 1
                         continue
 
-                    kerbside_id = _safe_int(row['KerbsideID'])
+                    # Get status description with default fallback
+                    status_description = _safe_string(row.get('Status_Description'), 'Unknown')
 
-                    # Only import if parking bay exists
+                    # If status is empty, use default
+                    if not status_description or status_description == '':
+                        status_description = 'Unknown'
+                        logger.info(f"Using default status 'Unknown' for KerbsideID {kerbside_id}")
+
+                    # Import even if parking bay doesn't exist - create a record anyway
                     if kerbside_id not in valid_ids:
-                        continue
+                        logger.info(f"KerbsideID {kerbside_id} not in parking_bays, but importing sensor data anyway")
 
-                    status_description = row['Status_Description'].strip()
+                    # Parse optional fields with safe conversion
+                    zone_number = _safe_int(row.get('Zone_Number'))
 
-                    # Parse optional fields
-                    zone_number = None
-                    if row.get('Zone_Number') and row['Zone_Number'].strip():
-                        try:
-                            zone_number = _safe_int(row['Zone_Number'])
-                        except:
-                            pass
-
-                    # Insert current status
+                    # Insert current status - NO STRICT VALIDATION
                     cursor.execute('''
                         INSERT OR REPLACE INTO parking_status_current 
                         (kerbside_id, zone_number, status_description)
@@ -453,10 +467,10 @@ def import_sensor_status_from_csv(cursor, csv_file):
                         logger.info(f"   Imported {imported_count} sensor records...")
 
                 except Exception as e:
-                    logger.warning(f"Error importing sensor data for {row.get('KerbsideID', 'Unknown')}: {e}")
-                    continue
+                    logger.warning(f"Error importing sensor data row {row_index + 1}: {e}")
+                    skipped_count += 1
 
-        logger.info(f"✅ Imported {imported_count} sensor status records (all available data)")
+        logger.info(f"✅ Imported {imported_count} sensor status records, skipped {skipped_count} due to critical errors")
 
     except Exception as e:
         logger.error(f"Failed to import sensor data: {e}")
