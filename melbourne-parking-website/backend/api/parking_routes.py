@@ -35,11 +35,11 @@ def get_current_parking_status():
         limit = request.args.get('limit', type=int)
         bounds = request.args.get('bounds')  # Format: "lat1,lng1,lat2,lng2"
 
-        # Use LEFT JOIN to ensure we get parking bays even without status data
+        # Revert to INNER JOIN but with better error handling
         query = db.session.query(
             ParkingBay,
             ParkingStatusCurrent
-        ).outerjoin(
+        ).join(
             ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
         )
 
@@ -54,44 +54,33 @@ def get_current_parking_status():
             except (ValueError, TypeError):
                 pass  # Ignore invalid bounds format
 
-        # Apply limit with safe default
+        # Start with original 1000 limit to ensure it works
         if limit is None:
-            limit = 3000  # Reasonable default that should cover most cases
+            limit = 1000
 
         parking_bays = query.limit(limit).all()
 
         results = []
         for bay, status in parking_bays:
-            # Handle cases where status might be None
-            status_description = status.status_description if status else 'Unknown'
-            zone_number = status.zone_number if status else None
-
             results.append({
                 'kerbside_id': bay.kerbside_id,
                 'latitude': float(bay.latitude),
                 'longitude': float(bay.longitude),
-                'status': status_description,
+                'status': status.status_description,
                 'road_segment': bay.road_segment_description,
-                'zone_number': zone_number
+                'zone_number': status.zone_number
             })
 
         return jsonify({
             'success': True,
             'count': len(results),
-            'data': results,
-            'debug_info': {
-                'query_limit': limit,
-                'has_bounds_filter': bounds is not None
-            }
+            'data': results
         })
 
     except Exception as e:
         return jsonify({
             'success': False,
-            'error': str(e),
-            'debug_info': {
-                'error_type': type(e).__name__
-            }
+            'error': str(e)
         }), 500
 
 @parking_routes.route('/streets', methods=['GET'])
