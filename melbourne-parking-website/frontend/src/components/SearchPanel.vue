@@ -14,12 +14,7 @@
       >
         Parking
       </button>
-      <button
-        @click="setDisplayMode('analytics')"
-        :class="['mode-btn', { active: displayMode === 'analytics' }]"
-      >
-        Analytics
-      </button>
+      
     </div>
 
     <!-- Mode-specific content -->
@@ -83,15 +78,7 @@
       </div>
     </div>
 
-    <!-- Analytics Mode -->
-    <div v-if="displayMode === 'analytics'" class="mode-content">
-      <div class="mode-description">
-        <p>Analyze parking data and population trends</p>
-      </div>
-
-      <!-- Integrated Analytics Panel Component -->
-      <AnalyticsPanel :parkingData="parkingData" />
-    </div>
+    
 
     <!-- Selected Parking Bay Details (shown for all modes) -->
     <div v-if="selectedParkingBay" class="selected-bay">
@@ -135,12 +122,12 @@
 </template>
 
 <script>
-import AnalyticsPanel from './AnalyticsPanel.vue'
+
 
 export default {
   name: 'SearchPanel',
   components: {
-    AnalyticsPanel
+    
   },
   props: {
     nearbyResults: {
