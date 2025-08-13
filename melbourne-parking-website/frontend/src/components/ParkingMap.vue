@@ -289,10 +289,34 @@ export default {
 
     getCachedStreetData(streetName) {
       if (!streetName) {
-        return this.allStreetsDataCache || this.parkingData
+        return this.allStreetsDataCache || this.parkingData || []
       }
 
-      return this.streetDataCache.get(streetName) || []
+      // First try exact match
+      let cachedData = this.streetDataCache.get(streetName)
+
+      // If no exact match, try to find partial match
+      if (!cachedData || cachedData.length === 0) {
+        // Filter from main parking data if cache is empty
+        if (this.parkingData && this.parkingData.length > 0) {
+          cachedData = this.parkingData.filter(bay =>
+            bay.road_segment && bay.road_segment.includes(streetName.split(' ')[0])
+          )
+
+          // Cache the filtered result
+          if (cachedData.length > 0) {
+            this.streetDataCache.set(streetName, cachedData)
+          }
+        }
+      }
+
+      // Debug logging
+      console.log(`🔍 Street: "${streetName}", Found: ${cachedData ? cachedData.length : 0} bays`)
+      if (this.parkingData) {
+        console.log(`📊 Total parking data available: ${this.parkingData.length} bays`)
+      }
+
+      return cachedData || []
     },
 
     getCachedHeatmapData(streetName) {

@@ -5,51 +5,171 @@ import math
 
 parking_routes = Blueprint('parking_routes', __name__)
 
+@parking_routes.route('/test', methods=['GET'])
+def test_api():
+    """Simple test endpoint to verify API is working"""
+    try:
+        # Test database connection and count records
+        bay_count = db.session.query(ParkingBay).count()
+        status_count = db.session.query(ParkingStatusCurrent).count()
+
+        return jsonify({
+            'status': 'API is working',
+            'database_connected': True,
+            'parking_bays_count': bay_count,
+            'parking_status_count': status_count,
+            'message': 'Backend is running successfully'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'API working but database error',
+            'database_connected': False,
+            'error': str(e)
+        }), 500
+
 @parking_routes.route('/current', methods=['GET'])
 def get_current_parking_status():
-    """Get current parking bay status for map display with optional limits"""
+    """Get current parking bay status for map display with balanced street distribution"""
     try:
         # Get optional query parameters
         limit = request.args.get('limit', type=int)
         bounds = request.args.get('bounds')  # Format: "lat1,lng1,lat2,lng2"
 
-        # Base query
-        query = db.session.query(
-            ParkingBay,
-            ParkingStatusCurrent
+        # Configuration: maintain total bays around 1500, but show 25 per street
+        if limit is None:
+            limit = 1500
+
+        bays_per_street = 25  # Each street shows 25 parking spots
+        target_streets = limit // bays_per_street  # Calculate how many streets to show
+
+        # First, get top streets by parking bay count
+        streets_query = db.session.query(
+            ParkingBay.road_segment_description,
+            func.count(ParkingBay.kerbside_id).label('bay_count')
         ).join(
             ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
+        ).filter(
+            ParkingBay.road_segment_description.isnot(None)
         )
 
-        # Apply geographic bounds filter if provided
+        # Apply geographic bounds filter to streets if provided
         if bounds:
             try:
                 lat1, lng1, lat2, lng2 = map(float, bounds.split(','))
-                query = query.filter(
+                streets_query = streets_query.filter(
                     ParkingBay.latitude.between(min(lat1, lat2), max(lat1, lat2)),
                     ParkingBay.longitude.between(min(lng1, lng2), max(lng1, lng2))
                 )
             except (ValueError, TypeError):
-                pass  # Ignore invalid bounds format
+                pass
 
-        # Apply limit if specified (default to 1000 for performance)
-        if limit is None:
-            limit = 1000
-
-        parking_bays = query.limit(limit).all()
+        # Get top streets by parking bay count (limit based on total bays / bays_per_street)
+        top_streets = streets_query.group_by(
+            ParkingBay.road_segment_description
+        ).order_by(
+            func.count(ParkingBay.kerbside_id).desc()
+        ).limit(target_streets).all()
 
         results = []
-        for bay, status in parking_bays:
+
+        # Get exactly 25 bays from each street
+        for street_data in top_streets:
+            street_name = street_data[0]
+
+            street_query = db.session.query(
+                ParkingBay,
+                ParkingStatusCurrent
+            ).join(
+                ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
+            ).filter(
+                ParkingBay.road_segment_description == street_name
+            )
+
+            # Apply geographic bounds filter if provided
+            if bounds:
+                try:
+                    lat1, lng1, lat2, lng2 = map(float, bounds.split(','))
+                    street_query = street_query.filter(
+                        ParkingBay.latitude.between(min(lat1, lat2), max(lat1, lat2)),
+                        ParkingBay.longitude.between(min(lng1, lng2), max(lng1, lng2))
+                    )
+                except (ValueError, TypeError):
+                    pass
+
+            # Get exactly 25 bays from this street
+            street_bays = street_query.limit(bays_per_street).all()
+
+            # Add street bays to results
+            for bay, status in street_bays:
+                results.append({
+                    'kerbside_id': bay.kerbside_id,
+                    'latitude': float(bay.latitude),
+                    'longitude': float(bay.longitude),
+                    'status': status.status_description,
+                    'road_segment': bay.road_segment_description,
+                    'zone_number': status.zone_number
+                })
+
+        return jsonify({
+            'success': True,
+            'count': len(results),
+            'data': results,
+            'distribution_info': {
+                'total_streets': len(top_streets),
+                'bays_per_street': bays_per_street,
+                'target_streets': target_streets,
+                'actual_bays_returned': len(results)
+            }
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@parking_routes.route('/streets', methods=['GET'])
+def get_streets_list():
+    """Get list of streets with parking statistics"""
+    try:
+        # Get streets with total bay counts and available bay counts separately
+        streets_data = db.session.query(
+            ParkingBay.road_segment_description,
+            func.count(ParkingBay.kerbside_id).label('total_bays')
+        ).join(
+            ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
+        ).filter(
+            ParkingBay.road_segment_description.isnot(None)
+        ).group_by(
+            ParkingBay.road_segment_description
+        ).order_by(
+            func.count(ParkingBay.kerbside_id).desc()
+        ).limit(50).all()
+
+        results = []
+        for street_name, total_bays in streets_data:
+            # Get available bays count for this specific street
+            available_count = db.session.query(
+                func.count(ParkingBay.kerbside_id)
+            ).join(
+                ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
+            ).filter(
+                ParkingBay.road_segment_description == street_name,
+                ParkingStatusCurrent.status_description == 'Unoccupied'
+            ).scalar() or 0
+
+            # Calculate occupancy rate
+            occupied_bays = total_bays - available_count
+            occupancy_rate = round((occupied_bays / total_bays * 100), 1) if total_bays > 0 else 0
+
             results.append({
-                'kerbside_id': bay.kerbside_id,
-                'latitude': float(bay.latitude),
-                'longitude': float(bay.longitude),
-                'status': status.status_description,
-                'road_segment': bay.road_segment_description,
-                'zone_number': status.zone_number
+                'street_name': street_name,
+                'total_bays': total_bays,
+                'available_bays': available_count,
+                'occupied_bays': occupied_bays,
+                'occupancy_rate': occupancy_rate
             })
 
-        # Return just the array for frontend compatibility
         return jsonify(results)
 
     except Exception as e:
@@ -101,50 +221,6 @@ def find_nearby_parking():
             'search_center': {'lat': lat, 'lng': lng},
             'search_radius': radius
         })
-
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@parking_routes.route('/streets', methods=['GET'])
-def get_streets_list():
-    """Get list of streets with parking statistics"""
-    try:
-        # Get streets with total bay counts first
-        streets_total = db.session.query(
-            ParkingBay.road_segment_description,
-            func.count(ParkingBay.kerbside_id).label('total_bays')
-        ).join(
-            ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
-        ).filter(
-            ParkingBay.road_segment_description.isnot(None)
-        ).group_by(
-            ParkingBay.road_segment_description
-        ).order_by(
-            func.count(ParkingBay.kerbside_id).desc()
-        ).limit(50).all()
-
-        streets_data = []
-        for street_name, total_bays in streets_total:
-            # Get available bays count for this street
-            available_count = db.session.query(
-                func.count(ParkingBay.kerbside_id)
-            ).join(
-                ParkingStatusCurrent, ParkingBay.kerbside_id == ParkingStatusCurrent.kerbside_id
-            ).filter(
-                ParkingBay.road_segment_description == street_name,
-                ParkingStatusCurrent.status_description == 'Unoccupied'
-            ).scalar() or 0
-
-            occupancy_rate = round(((total_bays - available_count) / total_bays * 100), 1) if total_bays > 0 else 0
-
-            streets_data.append({
-                'street_name': street_name,
-                'total_bays': total_bays,
-                'available_bays': available_count,
-                'occupancy_rate': occupancy_rate
-            })
-
-        return jsonify(streets_data)
 
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500

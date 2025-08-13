@@ -1,0 +1,30 @@
+services:
+  # Flask Backend API
+  - type: web
+    name: melbourne-parking-backend
+    env: python
+    repo: https://github.com/Zhmzjy/TE21-FIT5120.git
+    rootDir: melbourne-parking-website/backend
+    buildCommand: pip install -r requirements.txt && python init_render_data.py
+    startCommand: python run.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: DATABASE_PATH
+        value: "/opt/render/project/src/parking.db"
+      - key: DATABASE_URL
+        value: "sqlite:////opt/render/project/src/parking.db"
+      - key: PORT
+        value: 10000
+
+  # Vue.js Frontend Static Site
+  - type: web
+    name: melbourne-parking-frontend
+    env: static
+    repo: https://github.com/Zhmzjy/TE21-FIT5120.git
+    rootDir: melbourne-parking-website/frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: "https://melbourne-parking-backend.onrender.com"

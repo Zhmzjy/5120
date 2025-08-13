@@ -1,7 +1,7 @@
 import axios from 'axios'
+import config from '../config/api.js'
 
-// Use relative path for production deployment, fallback to localhost for development
-const API_BASE_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5002/api'
+const API_BASE_URL = `${config.API_BASE_URL}/api`
 
 class ParkingService {
   async getCurrentParkingStatus() {
