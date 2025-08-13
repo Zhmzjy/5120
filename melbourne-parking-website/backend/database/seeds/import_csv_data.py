@@ -28,7 +28,7 @@ class MelbourneDataImporter:
             db_config (dict): Database connection parameters
         """
         self.db_config = db_config
-        self.csv_path = "/Users/zhujunyi/5120"
+        self.csv_path = r"C:\Users\23651\Desktop\5120\5120"
 
     def get_database_connection(self):
         """Create PostgreSQL database connection"""
@@ -112,7 +112,7 @@ class MelbourneDataImporter:
         try:
             csv_file = os.path.join(self.csv_path, "only_melbourne_city_1_without_none.csv")
             df = pd.read_csv(csv_file)
-
+            
             conn = self.get_database_connection()
             cursor = conn.cursor()
 
