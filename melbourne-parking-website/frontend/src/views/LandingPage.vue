@@ -22,6 +22,7 @@
         <div class="hero-buttons">
           <button @click="goToDashboard" class="btn btn-primary">Find Parking Now</button>
           <button @click="scrollToFeatures" class="btn btn-secondary">Learn More</button>
+          <button @click="$router.push('/analytics')" class="btn btn-secondary">View Analytics</button>
         </div>
       </div>
       <div class="scroll-indicator" @click="scrollToFeatures">
@@ -149,6 +150,9 @@ export default {
     },
     goToDashboard() {
       this.$router.push('/dashboard')
+    },
+    goToAnalytics() {
+    this.$router.push('/analytics')
     },
     scrollToFeatures() {
       document.getElementById('features').scrollIntoView({
