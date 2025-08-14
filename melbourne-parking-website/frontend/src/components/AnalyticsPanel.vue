@@ -190,7 +190,7 @@ export default {
     },
 
     async loadPopulationData() {
-      if (this.isLoading) return // 防止重复加载
+      if (this.isLoading) return
 
       this.isLoading = true
       this.error = null
@@ -200,7 +200,6 @@ export default {
         this.populationData = data
         this.calculatePopulationStats()
 
-        // 只有当前是人口分析模式时才创建图表
         if (this.analysisType === 'population') {
           this.$nextTick(() => {
             setTimeout(() => {
